@@ -1,6 +1,6 @@
 /**
  * \file BlynkConfig.cpp
- * \author Florian Laschober
+ * \author Yves Gaignard
  * \brief Implementation of member function of #BlynkConfig and also all blynk hooks used to interact via the app
  */
 
@@ -24,7 +24,7 @@
      */
 	BlynkConfig::BlynkConfig()
 	{
-		ShelfDisplays = DisplayManager::getInstance();
+		PoolClockDisplays = DisplayManager::getInstance();
 		isClearAction = false;
         ColorSelection = CHANGE_HOURS_COLOR;
         blynkUIUpdateRequired = false;
@@ -197,7 +197,7 @@
 	BLYNK_WRITE(BLYNK_CHANNEL_BRIGHTNESS_SLIDER)
 	{
 		ClockS->clockBrightness = param[0].asInt();
-		BlynkC->ShelfDisplays->setGlobalBrightness(ClockS->clockBrightness);
+		BlynkC->PoolClockDisplays->setGlobalBrightness(ClockS->clockBrightness);
 	}
 
     /**
@@ -259,25 +259,25 @@
 		currentColor.b  = param[2].asInt();
 		if(BlynkC->ColorSelection & BlynkConfig::CHANGE_HOURS_COLOR)
 		{
-			BlynkC->ShelfDisplays->setHourSegmentColors(currentColor);
+			BlynkC->PoolClockDisplays->setHourSegmentColors(currentColor);
 			Blynk.virtualWrite(BLYNK_CHANNEL_HOUR_COLOR_SAVE, currentColor.r, currentColor.g, currentColor.b);
 			BlynkC->HourColor = currentColor;
 		}
 		if(BlynkC->ColorSelection & BlynkConfig::CHANGE_MINUTES_COLOR)
 		{
-			BlynkC->ShelfDisplays->setMinuteSegmentColors(currentColor);
+			BlynkC->PoolClockDisplays->setMinuteSegmentColors(currentColor);
 			Blynk.virtualWrite(BLYNK_CHANNEL_MINUTE_COLOR_SAVE, currentColor.r, currentColor.g, currentColor.b);
 			BlynkC->MinuteColor = currentColor;
 		}
 		if(BlynkC->ColorSelection & BlynkConfig::CHANGE_INTERIOR_COLOR)
 		{
-			BlynkC->ShelfDisplays->setInternalLEDColor(currentColor);
+			BlynkC->PoolClockDisplays->setInternalLEDColor(currentColor);
 			Blynk.virtualWrite(BLYNK_CHANNEL_INTERNAL_COLOR_SAVE, currentColor.r, currentColor.g, currentColor.b);
 			BlynkC->InternalColor = currentColor;
 		}
 		if(BlynkC->ColorSelection & BlynkConfig::CHANGE_DOT_COLOR)
 		{
-			BlynkC->ShelfDisplays->setDotLEDColor(currentColor);
+			BlynkC->PoolClockDisplays->setDotLEDColor(currentColor);
 			Blynk.virtualWrite(BLYNK_CHANNEL_DOT_COLOR_SAVE, currentColor.r, currentColor.g, currentColor.b);
 			BlynkC->DotColor = currentColor;
 		}
@@ -294,7 +294,7 @@
 		SavedColor.r  = param[0].asInt();
 		SavedColor.g  = param[1].asInt();
 		SavedColor.b  = param[2].asInt();
-		BlynkC->ShelfDisplays->setHourSegmentColors(SavedColor);
+		BlynkC->PoolClockDisplays->setHourSegmentColors(SavedColor);
 		BlynkC->HourColor = SavedColor;
 	}
 
@@ -309,7 +309,7 @@
 		SavedColor.r  = param[0].asInt();
 		SavedColor.g  = param[1].asInt();
 		SavedColor.b  = param[2].asInt();
-		BlynkC->ShelfDisplays->setMinuteSegmentColors(SavedColor);
+		BlynkC->PoolClockDisplays->setMinuteSegmentColors(SavedColor);
 		BlynkC->MinuteColor = SavedColor;
 	}
 
@@ -324,7 +324,7 @@
 		SavedColor.r  = param[0].asInt();
 		SavedColor.g  = param[1].asInt();
 		SavedColor.b  = param[2].asInt();
-		BlynkC->ShelfDisplays->setInternalLEDColor(SavedColor);
+		BlynkC->PoolClockDisplays->setInternalLEDColor(SavedColor);
 		BlynkC->InternalColor = SavedColor;
 	}
 
@@ -339,7 +339,7 @@
 		SavedColor.r  = param[0].asInt();
 		SavedColor.g  = param[1].asInt();
 		SavedColor.b  = param[2].asInt();
-		BlynkC->ShelfDisplays->setDotLEDColor(SavedColor);
+		BlynkC->PoolClockDisplays->setDotLEDColor(SavedColor);
 		BlynkC->DotColor = SavedColor;
 	}
 
@@ -375,7 +375,7 @@
 			TimeM->stopTimer();
 			Serial.println("Timer Stopped");
 			Blynk.syncVirtual(BLYNK_CHANNEL_TIMER_TIME_INPUT);
-			BlynkC->ShelfDisplays->setGlobalBrightness(ClockS->clockBrightness);
+			BlynkC->PoolClockDisplays->setGlobalBrightness(ClockS->clockBrightness);
             ClockS->switchMode(ClockState::CLOCK_MODE);
 		}
 	}
@@ -404,7 +404,7 @@
 		ClockS->nightModeBrightness = param[0].asInt();
 		if(TimeM->isInBetween(ClockS->NightModeStartTime, ClockS->NightModeStopTime))
 		{
-			BlynkC->ShelfDisplays->setGlobalBrightness(ClockS->nightModeBrightness);
+			BlynkC->PoolClockDisplays->setGlobalBrightness(ClockS->nightModeBrightness);
 		}
 	}
 

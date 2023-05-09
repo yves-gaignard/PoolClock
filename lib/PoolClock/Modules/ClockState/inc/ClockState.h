@@ -1,6 +1,6 @@
 /**
  * \file ClockState.h
- * \author Florian Laschober
+ * \author Yves Gaignard
  * \brief Header for class definition of the #ClockState which is used to keep track of values between modules
  */
 
@@ -25,7 +25,7 @@ public:
 	enum ClockStates {CLOCK_MODE, TIMER_MODE, TIMER_NOTIFICATION, ALARM_NOTIFICATION};
 private:
 	TimeManager* timeM;
-	DisplayManager* ShelfDisplays;
+	DisplayManager* PoolClockDisplays;
 	static ClockState* instance;
 	unsigned long lastDotFlash;
     ClockStates MainState;

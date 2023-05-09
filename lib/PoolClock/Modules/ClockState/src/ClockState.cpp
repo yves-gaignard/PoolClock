@@ -18,7 +18,7 @@ ClockState::ClockState()
 	currentAlarmSignalState = false;
 	isinNightMode = false;
 	timeM = TimeManager::getInstance();
-	ShelfDisplays = DisplayManager::getInstance();
+	PoolClockDisplays = DisplayManager::getInstance();
 }
 
 ClockState::~ClockState()
@@ -65,7 +65,7 @@ void ClockState::handleStates()
 					if(isinNightMode == false)
 					{
 						isinNightMode = true;
-						ShelfDisplays->setGlobalBrightness(nightModeBrightness);
+						PoolClockDisplays->setGlobalBrightness(nightModeBrightness);
 					}
 				}
 				else
@@ -73,46 +73,46 @@ void ClockState::handleStates()
 					if(isinNightMode == true)
 					{
 						isinNightMode = false;
-						ShelfDisplays->setGlobalBrightness(clockBrightness);
+						PoolClockDisplays->setGlobalBrightness(clockBrightness);
 					}
 				}
 			#endif
-			ShelfDisplays->displayTime(currentTime.hours, currentTime.minutes);
+			PoolClockDisplays->displayTime(currentTime.hours, currentTime.minutes);
 			#if DISPLAY_FOR_SEPARATION_DOT > -1
 				if(numDots > 0)
 				{
 					if(lastDotFlash + DOT_FLASH_INTERVAL <= millis())
 					{
 						lastDotFlash = millis();
-						ShelfDisplays->flashSeparationDot(numDots);
+						PoolClockDisplays->flashSeparationDot(numDots);
 					}
 				}
 			#endif
 		break;
 		case ClockState::TIMER_MODE:
 			currentTime = timeM->getRemainingTimerTime();
-			ShelfDisplays->displayTimer(currentTime.hours, currentTime.minutes, currentTime.seconds);
+			PoolClockDisplays->displayTimer(currentTime.hours, currentTime.minutes, currentTime.seconds);
 		break;
 		case ClockState::TIMER_NOTIFICATION:
 			if(currentAlarmSignalState == true)
 			{
-				ShelfDisplays->setGlobalBrightness(NOTIFICATION_BRIGHTNESS, false);
+				PoolClockDisplays->setGlobalBrightness(NOTIFICATION_BRIGHTNESS, false);
 			}
 			else
 			{
-				ShelfDisplays->setGlobalBrightness(0, false);
+				PoolClockDisplays->setGlobalBrightness(0, false);
 			}
 			currentAlarmSignalState = !currentAlarmSignalState;
 			alarmToggleCount++;
 			#if TIMER_FLASH_TIME == true
-				ShelfDisplays->displayTime(currentTime.hours, currentTime.minutes);
+				PoolClockDisplays->displayTime(currentTime.hours, currentTime.minutes);
 			#else
-				ShelfDisplays->displayTime(0, 0);
+				PoolClockDisplays->displayTime(0, 0);
 			#endif
 			if(alarmToggleCount >= TIMER_FLASH_COUNT)
 			{
-				ShelfDisplays->setGlobalBrightness(clockBrightness);
-				ShelfDisplays->displayTime(currentTime.hours, currentTime.minutes);
+				PoolClockDisplays->setGlobalBrightness(clockBrightness);
+				PoolClockDisplays->displayTime(currentTime.hours, currentTime.minutes);
 				alarmToggleCount = 0;
 				MainState = ClockState::CLOCK_MODE;
 			}
@@ -120,17 +120,17 @@ void ClockState::handleStates()
 		case ClockState::ALARM_NOTIFICATION:
 			if(currentAlarmSignalState == true)
 			{
-				ShelfDisplays->setGlobalBrightness(NOTIFICATION_BRIGHTNESS, false);
+				PoolClockDisplays->setGlobalBrightness(NOTIFICATION_BRIGHTNESS, false);
 			}
 			else
 			{
-				ShelfDisplays->setGlobalBrightness(0, false);
+				PoolClockDisplays->setGlobalBrightness(0, false);
 			}
 			currentAlarmSignalState = !currentAlarmSignalState;
-			ShelfDisplays->displayTime(currentTime.hours, currentTime.minutes);
+			PoolClockDisplays->displayTime(currentTime.hours, currentTime.minutes);
 			if(!timeM->isAlarmActive())
 			{
-				ShelfDisplays->setGlobalBrightness(clockBrightness);
+				PoolClockDisplays->setGlobalBrightness(clockBrightness);
 				MainState = ClockState::CLOCK_MODE;
 			}
 		break;

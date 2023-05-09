@@ -1,6 +1,6 @@
 /**
  * \file main.cpp
- * \author Yves Gaiganrd
+ * \author Yves Gaignard
  * \brief Glue logic to bring together all the modules and some additional stuff
  */
 
@@ -19,7 +19,7 @@
 	#include "BlynkConfig.h"
 #endif
 
-DisplayManager* ShelfDisplays = DisplayManager::getInstance();
+DisplayManager* PoolClockDisplays = DisplayManager::getInstance();
 TimeManager* timeM = TimeManager::getInstance();
 ClockState* states = ClockState::getInstance();
 
@@ -57,8 +57,8 @@ void startupAnimation()
 	targetMinH = currentTime.minutes / 10;
 	targetMinL = currentTime.minutes % 10;
 
-	ShelfDisplays->displayTime(0, 0);
-	ShelfDisplays->delay(DIGIT_ANIMATION_SPEED + 10);
+	PoolClockDisplays->displayTime(0, 0);
+	PoolClockDisplays->delay(DIGIT_ANIMATION_SPEED + 10);
 
 	while (currHourH != targetHourH || currHourL != targetHourL || currMinH != targetMinH || currMinL != targetMinL)
 	{
@@ -78,8 +78,8 @@ void startupAnimation()
 		{
 			currMinL++;
 		}
-		ShelfDisplays->displayTime(currHourH * 10 + currHourL, currMinH * 10 + currMinL);
-		ShelfDisplays->delay(DIGIT_ANIMATION_SPEED + 100);
+		PoolClockDisplays->displayTime(currHourH * 10 + currHourL, currMinH * 10 + currMinL);
+		PoolClockDisplays->delay(DIGIT_ANIMATION_SPEED + 100);
 	}
 }
 
@@ -87,14 +87,14 @@ void setup()
 {
 	Serial.begin(115200);
 
-	ShelfDisplays->InitSegments(0, WIFI_CONNECTING_COLOR, 50);
+	PoolClockDisplays->InitSegments(0, WIFI_CONNECTING_COLOR, 50);
 
-	ShelfDisplays->setHourSegmentColors(HOUR_COLOR);
-	ShelfDisplays->setMinuteSegmentColors(MINUTE_COLOR);
-	ShelfDisplays->setTemp1SegmentColors(TEMP1_COLOR);
-	ShelfDisplays->setTemp2SegmentColors(TEMP2_COLOR);
-	ShelfDisplays->setInternalLEDColor(INTERNAL_COLOR);
-	ShelfDisplays->setDotLEDColor(SEPARATION_DOT_COLOR);
+	PoolClockDisplays->setHourSegmentColors(HOUR_COLOR);
+	PoolClockDisplays->setMinuteSegmentColors(MINUTE_COLOR);
+	PoolClockDisplays->setTemp1SegmentColors(TEMP1_COLOR);
+	PoolClockDisplays->setTemp2SegmentColors(TEMP2_COLOR);
+	PoolClockDisplays->setInternalLEDColor(INTERNAL_COLOR);
+	PoolClockDisplays->setDotLEDColor(SEPARATION_DOT_COLOR);
 
 	#if RUN_WITHOUT_WIFI == false
 		wifiSetup();
@@ -134,10 +134,10 @@ void loop()
 	// Test code:
 	// if((millis()-last)>= 1500)
 	// {
-	// 	ShelfDisplays->test();
+	// 	PoolClockDisplays->test();
 	// 	last = millis();
 	// }
-    ShelfDisplays->handle();
+    PoolClockDisplays->handle();
 	timeM->handle();
 }
 
@@ -182,8 +182,8 @@ void TimerDone()
 		#else
 			WiFi.begin(WIFI_SSID, WIFI_PW);
 		#endif
-		ShelfDisplays->setAllSegmentColors(WIFI_CONNECTING_COLOR);
-		ShelfDisplays->showLoadingAnimation();
+		PoolClockDisplays->setAllSegmentColors(WIFI_CONNECTING_COLOR);
+		PoolClockDisplays->showLoadingAnimation();
 		for (int i = 0; i < NUM_RETRIES; i++)
 		{
 			Serial.print(".");
@@ -194,10 +194,10 @@ void TimerDone()
 			#endif
 			{
 				Serial.println("Reconnect successful");
-				ShelfDisplays->setAllSegmentColors(WIFI_CONNECTION_SUCCESSFUL_COLOR);
+				PoolClockDisplays->setAllSegmentColors(WIFI_CONNECTION_SUCCESSFUL_COLOR);
 				break;
 			}
-			ShelfDisplays->delay(500);
+			PoolClockDisplays->delay(500);
 		}
 
 		if(WiFi.status() != WL_CONNECTED)
@@ -210,13 +210,13 @@ void TimerDone()
 
 				// Wait for SmartConfig packet from mobile
 				Serial.println("Waiting for SmartConfig.");
-				ShelfDisplays->setAllSegmentColors(WIFI_SMART_CONFIG_COLOR);
+				PoolClockDisplays->setAllSegmentColors(WIFI_SMART_CONFIG_COLOR);
 				while (!WiFi.smartConfigDone())
 				{
 					Serial.print(".");
-					ShelfDisplays->delay(500);
+					PoolClockDisplays->delay(500);
 				}
-				ShelfDisplays->setAllSegmentColors(WIFI_CONNECTING_COLOR);
+				PoolClockDisplays->setAllSegmentColors(WIFI_CONNECTING_COLOR);
 				Serial.println("");
 				Serial.println("SmartConfig done.");
 
@@ -225,15 +225,15 @@ void TimerDone()
 				while (WiFi.status() != WL_CONNECTED)
 				{
 					Serial.print(".");
-					ShelfDisplays->setAllSegmentColors(WIFI_CONNECTION_SUCCESSFUL_COLOR);
-					ShelfDisplays->delay(500);
+					PoolClockDisplays->setAllSegmentColors(WIFI_CONNECTION_SUCCESSFUL_COLOR);
+					PoolClockDisplays->delay(500);
 				}
 				Serial.println("WiFi Connected.");
 				Serial.print("IP Address: ");
 				Serial.println(WiFi.localIP());
 			#else
 				Serial.println("WIFI connection failed");
-				ShelfDisplays->setAllSegmentColors(ERROR_COLOR);
+				PoolClockDisplays->setAllSegmentColors(ERROR_COLOR);
 			#endif
 			if(WiFi.status() != WL_CONNECTED)
 			{
@@ -242,10 +242,10 @@ void TimerDone()
 			}
 		}
 		WiFi.onEvent(WiFiStationDisconnected, ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
-		ShelfDisplays->stopLoadingAnimation();
+		PoolClockDisplays->stopLoadingAnimation();
 		Serial.println("Waiting for loading animation to finish...");
-		ShelfDisplays->waitForLoadingAnimationFinish();
-		ShelfDisplays->turnAllSegmentsOff();
+		PoolClockDisplays->waitForLoadingAnimationFinish();
+		PoolClockDisplays->turnAllSegmentsOff();
 	}
 #endif
 
@@ -282,9 +282,9 @@ void TimerDone()
 			#if IS_BLYNK_ACTIVE == true
 				BlynkConfiguration->stop();
 			#endif
-			ShelfDisplays->setAllSegmentColors(OTA_UPDATE_COLOR);
-			ShelfDisplays->turnAllLEDsOff(); //instead of the loading animation show a progress bar
-			ShelfDisplays->setGlobalBrightness(50);
+			PoolClockDisplays->setAllSegmentColors(OTA_UPDATE_COLOR);
+			PoolClockDisplays->turnAllLEDsOff(); //instead of the loading animation show a progress bar
+			PoolClockDisplays->setGlobalBrightness(50);
 		})
 		.onEnd([]()
 		{
@@ -295,10 +295,10 @@ void TimerDone()
 			Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
 			if(progressFirstStep == true)
 			{
-				ShelfDisplays->displayProgress(total);
+				PoolClockDisplays->displayProgress(total);
 				progressFirstStep = false;
 			}
-			ShelfDisplays->updateProgress(progress);
+			PoolClockDisplays->updateProgress(progress);
 		})
 		.onError([](ota_error_t error)
 		{
@@ -323,7 +323,7 @@ void TimerDone()
 			{
 				Serial.println("End Failed");
 			}
-			ShelfDisplays->setAllSegmentColors(ERROR_COLOR);
+			PoolClockDisplays->setAllSegmentColors(ERROR_COLOR);
 		});
 
 		ArduinoOTA.begin();

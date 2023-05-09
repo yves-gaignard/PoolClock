@@ -1,6 +1,6 @@
 /**
  * \file BlynkConfig.h
- * \author Florian Laschober
+ * \author Yves Gaignard
  * \brief Header for the #BlynkConfig class and all needed \ref #BlynkChannels defines
  */
 
@@ -71,7 +71,7 @@
 		CRGB MinuteColor;
 		CRGB DotColor;
 		bool blynkUIUpdateRequired;
-		DisplayManager* ShelfDisplays;
+		DisplayManager* PoolClockDisplays;
 		bool isClearAction;
 
 
