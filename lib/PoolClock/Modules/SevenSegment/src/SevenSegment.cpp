@@ -1,6 +1,6 @@
 /**
  * \file SevenSegment.cpp
- * \author Florian Laschober
+ * \author Yves Gaignard
  * \brief Implementations of the member functions of the SevenSegment class
  */
 
@@ -38,7 +38,7 @@ SevenSegment::~SevenSegment()
 
 bool SevenSegment::isConfigComplete()
 {
-	if(DisplayMode == FULL_SEGMENT)
+	if(DisplayMode == SEVEN_SEGMENTS)
 	{
 		for (uint8_t i = 0; i < 7; i++)
 		{
@@ -49,11 +49,7 @@ bool SevenSegment::isConfigComplete()
 		}
 		return true;
 	}
-	else if(DisplayMode == HALF_SEGMENT)
-	{
-		return Segments[getIndexOfSegment(MiddleTopSegment)] != nullptr && Segments[getIndexOfSegment(CenterSegment)] != nullptr && Segments[getIndexOfSegment(MiddleBottomSegment)] != nullptr;
-	}
-	else if(DisplayMode == ONLY_ONE)
+	else if(DisplayMode == TWO_VERTICAL_SEGMENTS)
 	{
 		return Segments[getIndexOfSegment(RightBottomSegment)] != nullptr && Segments[getIndexOfSegment(RightTopSegment)] != nullptr;
 	}
@@ -85,7 +81,7 @@ void SevenSegment::add(Segment* segmentToAdd, SegmentPosition positionInDisplay)
 void SevenSegment::DisplayNumberWithoutAnim(uint8_t value)
 {
 	uint8_t currentSegmentMap = 0x00;
-	if((value >= 0 && value <= 9 && DisplayMode == FULL_SEGMENT) || (value == 1 && DisplayMode == ONLY_ONE)) //check if value can be displayed otherwise turn off all segments
+	if((value >= 0 && value <= 9 && DisplayMode == SEVEN_SEGMENTS) || (value == 1 && DisplayMode == TWO_VERTICAL_SEGMENTS)) //check if value can be displayed otherwise turn off all segments
 	{
 		currentSegmentMap = segmentMap[value];
 	}
@@ -147,12 +143,8 @@ Animator::ComplexAmination* SevenSegment::getTransition(uint8_t from, uint8_t to
 
 void SevenSegment::DisplayNumber(uint8_t value)
 {
-	if(DisplayMode == HALF_SEGMENT) // do nothing if we are only dealing with a half segment
-	{
-		return;
-	}
 	Animator::ComplexAmination* anim = nullptr;
-	if(DisplayMode == ONLY_ONE)
+	if(DisplayMode == TWO_VERTICAL_SEGMENTS)
 	{
 		if(currentValue != 1 && value == 1)
 		{
@@ -179,7 +171,7 @@ void SevenSegment::DisplayNumber(uint8_t value)
 
 void SevenSegment::FlashMiddleDot(uint8_t numDots)
 {
-	if(DisplayMode != ONLY_ONE)
+	if(DisplayMode != TWO_VERTICAL_SEGMENTS)
 	{
 		if(numDots == 2)
 		{
@@ -239,12 +231,10 @@ bool SevenSegment::canDisplay(char charToCheck)
 	}
 	switch (DisplayMode)
 	{
-	case FULL_SEGMENT:
+	case SEVEN_SEGMENTS:
 		return charToCheck <= 9;
-	case ONLY_ONE:
+	case TWO_VERTICAL_SEGMENTS:
 		return charToCheck == 1;
-	case HALF_SEGMENT:
-		return charToCheck == ':';
 	default:
 		return false;
 	}

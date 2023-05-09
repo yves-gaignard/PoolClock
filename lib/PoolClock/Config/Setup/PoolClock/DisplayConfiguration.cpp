@@ -1,11 +1,9 @@
 /**
  * \file DisplayConfiguration.cpp
- * \author Florian laschober
+ * \author Yves Gaignard
  * \brief Configuration for the whole LED setup.
  *
  */
-
-//This configuration is for a fully loaded 24h display with intermediate segments.
 
 #include "DisplayManager.h"
 
@@ -166,15 +164,15 @@ Segment::direction DisplayManager::SegmentDirections[NUM_SEGMENTS] = {
  * \brief Displays that are present. These define the displays in the order that is set in the #DisplayManager::diplayIndex array.
  */
 SevenSegment::SevenSegmentMode DisplayManager::SegmentDisplayModes[NUM_DISPLAYS] = {
-	SevenSegment::FULL_SEGMENT,
-	SevenSegment::FULL_SEGMENT,
-	SevenSegment::FULL_SEGMENT,
-	SevenSegment::FULL_SEGMENT,
-	SevenSegment::ONLY_ONE,
-	SevenSegment::FULL_SEGMENT,
-	SevenSegment::FULL_SEGMENT,
-	SevenSegment::FULL_SEGMENT,
-	SevenSegment::FULL_SEGMENT
+	SevenSegment::SEVEN_SEGMENTS,
+	SevenSegment::SEVEN_SEGMENTS,
+	SevenSegment::SEVEN_SEGMENTS,
+	SevenSegment::SEVEN_SEGMENTS,
+	SevenSegment::TWO_VERTICAL_SEGMENTS,
+	SevenSegment::SEVEN_SEGMENTS,
+	SevenSegment::SEVEN_SEGMENTS,
+	SevenSegment::SEVEN_SEGMENTS,
+	SevenSegment::SEVEN_SEGMENTS
 };
 
 /**

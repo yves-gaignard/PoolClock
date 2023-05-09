@@ -1,6 +1,6 @@
 /**
  * \file SevenSegment.h
- * \author Florian Laschober
+ * \author Yves Gaignard
  * \brief Definition of the SevenSegment class and some helper enums and definitions
  */
 
@@ -58,9 +58,8 @@ public:
 	 * 		  also which digits can be displayed by this paricular instance of the seven segment display
 	 */
 	enum SevenSegmentMode {
-		FULL_SEGMENT, 	/** has 7 segments */
-		HALF_SEGMENT, 	/** has only the 3 horizontal segments */
-		ONLY_ONE		/** has only the right 2 vertical segments */
+		SEVEN_SEGMENTS, 	/** has 7 segments */
+		TWO_VERTICAL_SEGMENTS		/** has only the right 2 vertical segments */
 	};
 
 	/**

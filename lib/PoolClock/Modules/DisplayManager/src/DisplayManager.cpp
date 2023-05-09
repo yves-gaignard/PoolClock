@@ -1,6 +1,6 @@
 /**
  * \file DisplayManager.cpp
- * \author Florian Laschober
+ * \author Yves Gaignard
  * \brief Implementation of the DisplayManager class member functions
  */
 
@@ -242,7 +242,7 @@ void DisplayManager::displayTimer(uint8_t hours, uint8_t minutes, uint8_t second
 	}
 	else
 	{
-		if(SegmentDisplayModes[HIGHER_DIGIT_HOUR_DISPLAY] == SevenSegment::ONLY_ONE)
+		if(SegmentDisplayModes[HIGHER_DIGIT_HOUR_DISPLAY] == SevenSegment::TWO_VERTICAL_SEGMENTS)
 		{
 			if(minutes < 20)
 			{
