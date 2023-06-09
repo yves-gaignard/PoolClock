@@ -58,7 +58,10 @@ void Animator::handle(uint32_t state)
 
 	if(lastLEDUpdate + FASTLED_SAFE_DELAY_MS < millis())
 	{
+		//Serial.println("[I] FastLED.show()");
+
 		lastLEDUpdate = millis();
+		//Serial.printf("lastLEDUpdate: %d\n",lastLEDUpdate);
 		FastLED.show();
 	}
 }
@@ -110,9 +113,16 @@ AnimatableObject::AnimationFunction Animator::getAnimationEffect(AnimatableObjec
 void Animator::delay(uint32_t delayInMs)
 {
 	unsigned long startMillis = millis();
+	//unsigned long currentMillis = millis();
+	//Serial.printf("delayInMs   : %d\n", delayInMs);
+	//Serial.printf("startMillis : %d\n", startMillis);
 	while(millis() - startMillis < delayInMs)
 	{
+		//currentMillis = millis();
+		//Serial.printf("currentMillis : %d\n", currentMillis);
 		handle();
+		//Serial.println("After handle");
+
 	}
 }
 

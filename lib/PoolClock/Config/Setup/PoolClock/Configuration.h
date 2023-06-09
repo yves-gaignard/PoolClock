@@ -19,13 +19,13 @@
  * \brief If you want to run the system in a minimal mode to test some basic functionality or
  * 		  debug something it could be useful to disable wifi functionality completely.
  */
-#define RUN_WITHOUT_WIFI 		false
+#define RUN_WITHOUT_WIFI 		false  // TODOPROD false
 
 #if RUN_WITHOUT_WIFI == false
 	/**
 	 * \brief If you want Blynk functionality set this to true and set your authentication token. Otherwise set it to false
 	 */
-	#define IS_BLYNK_ACTIVE 		false
+	#define IS_BLYNK_ACTIVE 		false // TODOPROD true
 
 	#if IS_BLYNK_ACTIVE == true
 		/**
@@ -62,7 +62,7 @@
 	 * This is a nice addition to cable upload but it doesn't replace it completely.
 	 * If the microcontroller crashes because of bad configuration you still have to use a cable
 	 */
-	#define ENABLE_OTA_UPLOAD			true
+	#define ENABLE_OTA_UPLOAD	true		// TODOPROD true
 
 	#if ENABLE_OTA_UPLOAD == true
 		/**
@@ -70,6 +70,7 @@
          *        in the \ref platformio.ini file
 		 */
 		#define OTA_UPDATE_HOST_NAME	"PoolClock"
+		#define OTA_UPDATE_PORT         3232  
 	#endif
 
 	/**
@@ -81,14 +82,15 @@
 	/**
 	 * \brief Use the ESP smart config to setup the wifi network. If you want to set it manually set this to false
 	 */
-	#define USE_ESPTOUCH_SMART_CONFIG	true
+	#define USE_ESPTOUCH_SMART_CONFIG	false // TODOPROD true
 
 	#if USE_ESPTOUCH_SMART_CONFIG == false
 		/**
 		 * \brief WIFI_SSID and WIFI_PW are only needed if smart setup is disabled
 		 */
-		#define WIFI_SSID	"SET_YOUR_SSID_HERE"
-		#define WIFI_PW		"SET_YOUR_PASSWORD_HERE"
+		#define WIFI_SSID	"TP-Link_D50E"        // TODOPROD "SET_YOUR_SSID_HERE"
+		#define WIFI_PW		"17084826"            // TODOPROD "SET_YOUR_PASSWORD_HERE"
+		#define WIFI_WITHOUT_SCANNING_PHASE false // TODOPROD false
 	#endif
 
 #endif
@@ -239,7 +241,7 @@
 /**
  * \brief Pin to which the led strip data pin is connected to
  */
-#define LED_DATA_PIN			21
+#define LED_DATA_PIN				18
 
 /**
  * \brief Total number of segments that have LEDs in the shelf
@@ -265,7 +267,7 @@
 /**
  * \brief Number of LEDs For interior lights
  */
-#define ADDITIONAL_LEDS			0
+#define ADDITIONAL_LEDS			1  // ATTENTION MUST BE >= 1
 
 /**
  * \brief Automatically calculated total number of LEDs used
@@ -278,7 +280,7 @@
 	/**
 	 * \brief Pin to which the downlight led Strip data pin is connected to
 	 */
-	#define DOWNLIGHT_LED_DATA_PIN			22
+	#define DOWNLIGHT_LED_DATA_PIN			5
 #endif
 
 /**
@@ -426,8 +428,8 @@ enum DisplayIDs {
 /**
  * \brief enable for wifi less operation or to demo all the animations
  */
-#define TIME_MANAGER_DEMO_MODE	false
-
+#define TIME_MANAGER_DEMO_MODE	false  // TODOPROD false
+ 
 /**
  * \brief The time it takes for one digit to morph into another
  */

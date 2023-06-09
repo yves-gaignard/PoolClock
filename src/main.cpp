@@ -86,20 +86,30 @@ void startupAnimation()
 void setup()
 {
 	Serial.begin(115200);
+	delay(100);
 
+	Serial.println("Init Segment...");
 	PoolClockDisplays->InitSegments(0, WIFI_CONNECTING_COLOR, 50);
 
+	Serial.println("setHourSegmentColors ...");
 	PoolClockDisplays->setHourSegmentColors(HOUR_COLOR);
+	Serial.println("setMinuteSegmentColors ...");
 	PoolClockDisplays->setMinuteSegmentColors(MINUTE_COLOR);
+	Serial.println("setTemp1SegmentColors ...");
 	PoolClockDisplays->setTemp1SegmentColors(TEMP1_COLOR);
+	Serial.println("setTemp2SegmentColors ...");
 	PoolClockDisplays->setTemp2SegmentColors(TEMP2_COLOR);
+	Serial.println("setInternalLEDColor ...");
 	PoolClockDisplays->setInternalLEDColor(INTERNAL_COLOR);
+	Serial.println("setDotLEDColor ...");
 	PoolClockDisplays->setDotLEDColor(SEPARATION_DOT_COLOR);
 
 	#if RUN_WITHOUT_WIFI == false
+	    Serial.println("wifi setup ...");
 		wifiSetup();
 	#endif
 	#if ENABLE_OTA_UPLOAD == true
+	    Serial.println("OTA setup ...");
 		setupOTA();
 	#endif
 	#if ENABLE_OTA_UPLOAD == true
@@ -107,28 +117,35 @@ void setup()
 	#endif
 
 	#if IS_BLYNK_ACTIVE == true
+	    Serial.println("Blynk configuration setup ...");
 		BlynkConfiguration->setup();
 	#endif
 
 	Serial.println("Fetching time from NTP server...");
 	if(timeM->init() == false)
 	{
-		Serial.printf("[E]: TimeManager failed to synchronize for the first time with the NTP server. Retrying in %d seconds", TIME_SYNC_INTERVAL);
+		Serial.printf("[E]: TimeManager failed to synchronize for the first time with the NTP server. Retrying in %d seconds\n", TIME_SYNC_INTERVAL);
 	}
+	String sCurrentTime = timeM->getCurrentTimeString();
+	Serial.printf("Current time : %s\n", sCurrentTime);
 	timeM->setTimerTickCallback(TimerTick);
 	timeM->setTimerDoneCallback(TimerDone);
 	timeM->setAlarmCallback(AlarmTriggered);
 
 	Serial.println("Displaying startup animation...");
 	startupAnimation();
-	Serial.println("Setup done. Main Loop starting...");
+	Serial.println("Setup done...");
 }
 
 void loop()
 {
+	Serial.println("Begin of Main Loop...");
+	delay(10000);
 	#if ENABLE_OTA_UPLOAD == true
+	    Serial.println("ArduinoOTA.handle()...");
 		ArduinoOTA.handle();
 	#endif
+	Serial.println("states->handleStates()...");
 	states->handleStates(); //updates display states, switches between modes etc.
 
 	// Test code:
@@ -137,7 +154,9 @@ void loop()
 	// 	PoolClockDisplays->test();
 	// 	last = millis();
 	// }
+	Serial.println("PoolClockDisplays->handle()...");
     PoolClockDisplays->handle();
+	Serial.println("timeM->handle()...");
 	timeM->handle();
 }
 
@@ -180,13 +199,26 @@ void TimerDone()
 			WiFi.reconnect(); //try to reconnect
 			Serial.println("Trying to reconnect to previous wifi network");
 		#else
+		  Serial.println("WIFI begin ...");
+		  #if WIFI_WITHOUT_SCANNING_PHASE == true
+			WiFi.begin(WIFI_SSID, WIFI_PW, 6 );   // specify the WiFi channel number (6) when calling WiFi.begin(). This skips the WiFi scanning phase and saves about 4 seconds when connecting to the WiFi.
+		  #else
 			WiFi.begin(WIFI_SSID, WIFI_PW);
+		  #endif
 		#endif
+		if(WiFi.status() == WL_CONNECTED) 
+		  Serial.println("WIFI Connection successful");
+		else
+		  Serial.println("WIFI Connection failed");
+
+		Serial.println("setAllSegmentColors ...");
 		PoolClockDisplays->setAllSegmentColors(WIFI_CONNECTING_COLOR);
+		Serial.println("showLoadingAnimation ...");
 		PoolClockDisplays->showLoadingAnimation();
 		for (int i = 0; i < NUM_RETRIES; i++)
 		{
-			Serial.print(".");
+			Serial.printf("Wifi connection retry number = %d\n", i);
+			//Serial.print(".");
 			#if USE_ESPTOUCH_SMART_CONFIG == true
 				if(WiFi.begin() == WL_CONNECTED)
 			#else
@@ -194,10 +226,16 @@ void TimerDone()
 			#endif
 			{
 				Serial.println("Reconnect successful");
+        		Serial.println("setAllSegmentColors ...");
 				PoolClockDisplays->setAllSegmentColors(WIFI_CONNECTION_SUCCESSFUL_COLOR);
 				break;
 			}
+				else {
+					Serial.println("WIFI Connection failed");
+				}
+			//delay(500);
 			PoolClockDisplays->delay(500);
+			Serial.println("WIFI Connection after Delay");
 		}
 
 		if(WiFi.status() != WL_CONNECTED)
@@ -254,7 +292,8 @@ void TimerDone()
 	void setupOTA()
 	{
 		// Port defaults to 3232
-		// ArduinoOTA.setPort(3232);
+		ArduinoOTA.setPort(OTA_UPDATE_PORT);
+
 
 		// Hostname defaults to esp3232-[MAC]
 		ArduinoOTA.setHostname(OTA_UPDATE_HOST_NAME);

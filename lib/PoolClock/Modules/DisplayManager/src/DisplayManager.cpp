@@ -169,12 +169,14 @@ void DisplayManager::InitSegments(uint16_t indexOfFirstLed, CRGB initialColor, u
 		}
 	}
 	uint16_t currentLEDIndex = indexOfFirstLed;
+	Serial.printf("Segment Number = %d\n", NUM_SEGMENTS);
 	for (uint16_t i = 0; i < NUM_SEGMENTS; i++)
 	{
 		ledsPerSegment = 0;
-		if      ( SegmentDisplaySize[i] == SevenSegment::LONG_SEGMENT )  {ledsPerSegment = NUM_LEDS_PER_LONG_SEGMENT  ;}
-		else if ( SegmentDisplaySize[i] == SevenSegment::SHORT_SEGMENT)  {ledsPerSegment = NUM_LEDS_PER_SHORT_SEGMENT ;}
-		else if ( SegmentDisplaySize[i] == SevenSegment::DOT_SEGMENT  )  {ledsPerSegment = NUM_LEDS_PER_DOT_SEGMENT   ;} 
+		if      ( SegmentDisplaySize[diplayIndex[i]] == SevenSegment::LONG_SEGMENT )  {ledsPerSegment = NUM_LEDS_PER_LONG_SEGMENT  ;}
+		else if ( SegmentDisplaySize[diplayIndex[i]] == SevenSegment::SHORT_SEGMENT)  {ledsPerSegment = NUM_LEDS_PER_SHORT_SEGMENT ;}
+		else if ( SegmentDisplaySize[diplayIndex[i]] == SevenSegment::DOT_SEGMENT  )  {ledsPerSegment = NUM_LEDS_PER_DOT_SEGMENT   ;} 
+		Serial.printf("Segment = %d    Size = %d\n", i, ledsPerSegment);
 
 		allSegments[i] = new Segment(leds, currentLEDIndex, ledsPerSegment, SegmentDirections[i], initialColor);
 		if(Displays[diplayIndex[i]] == nullptr)
@@ -358,7 +360,12 @@ void DisplayManager::updateProgress(uint32_t progress)
 
 void DisplayManager::delay(uint32_t timeInMs)
 {
+	unsigned long startMillis = millis();
+	Serial.printf("delayInMs   : %d\n", timeInMs);
+	Serial.printf("startMillis : %d\n", startMillis);
 	animationManager->delay(timeInMs);
+	unsigned long endMillis = millis();
+	Serial.printf("endMillis   : %d\n", endMillis);
 }
 
 void DisplayManager::setGlobalBrightness(uint8_t brightness, bool enableSmoothTransition)

@@ -62,8 +62,10 @@ uint8_t SevenSegment::getIndexOfSegment(SegmentPosition positionInDisplay)
 	while(positionInDisplay >> segID != 0x01)
 	{
 		segID++;
+		// Serial.printf("segID = %d\n", segID);
 		if(segID >= 7) // make sure we don't get stuck in an endless loop here
 		{
+			Serial.printf("segID = %d - ", segID);
 			Serial.println("Failed to find segment ID this should not be possible");
 			return 6; // and that the value is still valid.
 		}
