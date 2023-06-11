@@ -139,13 +139,12 @@ void setup()
 
 void loop()
 {
-	Serial.println("Begin of Main Loop...");
-	delay(10000);
+	//DBG Serial.println("Begin of Main Loop...");
 	#if ENABLE_OTA_UPLOAD == true
-	    Serial.println("ArduinoOTA.handle()...");
+	    //DBG Serial.println("ArduinoOTA.handle()...");
 		ArduinoOTA.handle();
 	#endif
-	Serial.println("states->handleStates()...");
+	//DBG Serial.println("states->handleStates()...");
 	states->handleStates(); //updates display states, switches between modes etc.
 
 	// Test code:
@@ -154,9 +153,9 @@ void loop()
 	// 	PoolClockDisplays->test();
 	// 	last = millis();
 	// }
-	Serial.println("PoolClockDisplays->handle()...");
+	//DBG Serial.println("PoolClockDisplays->handle()...");
     PoolClockDisplays->handle();
-	Serial.println("timeM->handle()...");
+	//DBG Serial.println("timeM->handle()...");
 	timeM->handle();
 }
 

@@ -50,8 +50,8 @@ SevenSegment::SegmentPosition DisplayManager::SegmentPositions[NUM_SEGMENTS] = {
 	SevenSegment::MiddleBottomSegment,
 	SevenSegment::RightBottomSegment,
 
-	SevenSegment::LeftTopSegment,
-	SevenSegment::LeftBottomSegment,
+	SevenSegment::RightTopSegment,
+	SevenSegment::RightBottomSegment,
 
 	SevenSegment::LeftTopSegment,
 	SevenSegment::MiddleTopSegment,

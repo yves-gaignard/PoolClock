@@ -51,6 +51,9 @@ private:
     CubicEase* lightSensorEasing;
 	Animator::ComplexAnimationInstance* loadingAnimationID;
 
+	uint8_t Temp1;
+	uint8_t Temp2;
+
 	uint32_t progressTotal;
 	uint32_t currentProgressOffset;
 	uint8_t currentProgressStep;
@@ -157,6 +160,13 @@ public:
 	 * \brief Has to be called cyclicly in the loop to enable live updating of the LEDs
 	 */
 	void handle();
+
+	/**
+	 * \brief Displays the temperature 1 and 2 on the respective displays
+	 * \param Temp1 Number to show on the temp1 display
+	 * \param Temp2 Number to show on the temp2 display
+	 */
+	void displayTemperature(uint8_t Temp1, uint8_t Temp2);
 
 	/**
 	 * \brief Sets the color of the interrior LEDs and displays it immediately

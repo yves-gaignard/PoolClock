@@ -51,6 +51,7 @@ ClockState::ClockStates ClockState::getMode()
 
 void ClockState::handleStates()
 {
+	//DBG Serial.println("ClockState::handleStates() ... Start");
 	if(lastUpdateMillis + TIME_UPDATE_INTERVAL <= millis()) // update the display only in a certain intervall
 	{
 		lastUpdateMillis = millis();
@@ -77,6 +78,7 @@ void ClockState::handleStates()
 					}
 				}
 			#endif
+			Serial.printf("PoolClockDisplays->displayTime... %d:%d:%d\n",currentTime.hours, currentTime.minutes, currentTime.seconds);
 			PoolClockDisplays->displayTime(currentTime.hours, currentTime.minutes);
 			#if DISPLAY_FOR_SEPARATION_DOT > -1
 				if(numDots > 0)
@@ -84,13 +86,16 @@ void ClockState::handleStates()
 					if(lastDotFlash + DOT_FLASH_INTERVAL <= millis())
 					{
 						lastDotFlash = millis();
+						//DBG Serial.printf("PoolClockDisplays->flashSeparationDot... %d\n",numDots);
 						PoolClockDisplays->flashSeparationDot(numDots);
+						//DBG Serial.println("PoolClockDisplays->flashSeparationDot...End");
 					}
 				}
 			#endif
 		break;
 		case ClockState::TIMER_MODE:
 			currentTime = timeM->getRemainingTimerTime();
+			Serial.printf("PoolClockDisplays->displayTimer... %d:%d:%d\n",currentTime.hours, currentTime.minutes, currentTime.seconds);
 			PoolClockDisplays->displayTimer(currentTime.hours, currentTime.minutes, currentTime.seconds);
 		break;
 		case ClockState::TIMER_NOTIFICATION:
@@ -127,6 +132,7 @@ void ClockState::handleStates()
 				PoolClockDisplays->setGlobalBrightness(0, false);
 			}
 			currentAlarmSignalState = !currentAlarmSignalState;
+			Serial.printf("PoolClockDisplays->displayAlarm... %d:%d:%d\n",currentTime.hours, currentTime.minutes, currentTime.seconds);
 			PoolClockDisplays->displayTime(currentTime.hours, currentTime.minutes);
 			if(!timeM->isAlarmActive())
 			{
@@ -137,5 +143,8 @@ void ClockState::handleStates()
 		default:
 			break;
 		}
+		// Display of temperature
+		PoolClockDisplays->displayTemperature(34, 29);
 	}
+	//DBG Serial.println("ClockState::handleStates() ... End");
 }

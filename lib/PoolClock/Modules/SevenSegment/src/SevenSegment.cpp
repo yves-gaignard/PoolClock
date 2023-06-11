@@ -58,11 +58,12 @@ bool SevenSegment::isConfigComplete()
 
 uint8_t SevenSegment::getIndexOfSegment(SegmentPosition positionInDisplay)
 {
+	//DBG Serial.printf("SevenSegment::getIndexOfSegment .... positionInDisplay = %d\n", positionInDisplay);
 	uint8_t segID = 0;
 	while(positionInDisplay >> segID != 0x01)
 	{
 		segID++;
-		// Serial.printf("segID = %d\n", segID);
+		//Serial.printf("segID = %d\n", segID);
 		if(segID >= 7) // make sure we don't get stuck in an endless loop here
 		{
 			Serial.printf("segID = %d - ", segID);
@@ -70,6 +71,7 @@ uint8_t SevenSegment::getIndexOfSegment(SegmentPosition positionInDisplay)
 			return 6; // and that the value is still valid.
 		}
 	}
+	//DBG Serial.printf("SevenSegment::getIndexOfSegment .... segID = %d\n", segID);
 	return segID;
 }
 
@@ -173,21 +175,30 @@ void SevenSegment::DisplayNumber(uint8_t value)
 
 void SevenSegment::FlashMiddleDot(uint8_t numDots)
 {
+	//DBG Serial.println("SevenSegment::FlashMiddleDot...1");
 	if(DisplayMode != TWO_VERTICAL_SEGMENTS)
 	{
 		if(numDots == 2)
 		{
+	//DBG Serial.println("SevenSegment::FlashMiddleDot...2");
 			AnimationHandler->startAnimation(Segments[getIndexOfSegment(MiddleTopSegment)], AnimationEffects::AnimateMiddleDotFlash, DOT_FLASH_SPEED);
 			AnimationHandler->startAnimation(Segments[getIndexOfSegment(MiddleBottomSegment)], AnimationEffects::AnimateMiddleDotFlash, DOT_FLASH_SPEED);
 		}
 		else
 		{
+	//DBG Serial.println("SevenSegment::FlashMiddleDot...3");
 			AnimationHandler->startAnimation(Segments[getIndexOfSegment(CenterSegment)], AnimationEffects::AnimateMiddleDotFlash, DOT_FLASH_SPEED);
 		}
 	}
 	else
 	{
+	//DBG Serial.println("SevenSegment::FlashMiddleDot...4");
+	uint8_t indexOfSegment = getIndexOfSegment(RightBottomSegment);
+	//DBG Serial.printf("SevenSegment::FlashMiddleDot...getIndexOfSegment(RightBottomSegment)=%d\n",indexOfSegment);
+	//DBG Serial.printf("SevenSegment::FlashMiddleDot...Segments[getIndexOfSegment(RightBottomSegment)=%d\n",Segments[indexOfSegment]);
+	
 		AnimationHandler->startAnimation(Segments[getIndexOfSegment(RightBottomSegment)], AnimationEffects::AnimateMiddleDotFlash, DOT_FLASH_SPEED);
+	//DBG Serial.printf("SevenSegment::FlashMiddleDot...getIndexOfSegment(RightTopSegment)=%d\n",getIndexOfSegment(RightTopSegment));
 		AnimationHandler->startAnimation(Segments[getIndexOfSegment(RightTopSegment)], AnimationEffects::AnimateMiddleDotFlash, DOT_FLASH_SPEED);
 	}
 }

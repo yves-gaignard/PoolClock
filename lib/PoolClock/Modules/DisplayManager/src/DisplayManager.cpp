@@ -169,21 +169,23 @@ void DisplayManager::InitSegments(uint16_t indexOfFirstLed, CRGB initialColor, u
 		}
 	}
 	uint16_t currentLEDIndex = indexOfFirstLed;
-	Serial.printf("Segment Number = %d\n", NUM_SEGMENTS);
+	//DBG Serial.printf("Segment Number = %d\n", NUM_SEGMENTS);
 	for (uint16_t i = 0; i < NUM_SEGMENTS; i++)
 	{
 		ledsPerSegment = 0;
 		if      ( SegmentDisplaySize[diplayIndex[i]] == SevenSegment::LONG_SEGMENT )  {ledsPerSegment = NUM_LEDS_PER_LONG_SEGMENT  ;}
 		else if ( SegmentDisplaySize[diplayIndex[i]] == SevenSegment::SHORT_SEGMENT)  {ledsPerSegment = NUM_LEDS_PER_SHORT_SEGMENT ;}
 		else if ( SegmentDisplaySize[diplayIndex[i]] == SevenSegment::DOT_SEGMENT  )  {ledsPerSegment = NUM_LEDS_PER_DOT_SEGMENT   ;} 
-		Serial.printf("Segment = %d    Size = %d\n", i, ledsPerSegment);
+		//DBG Serial.printf("Segment = %d    Size = %d ", i, ledsPerSegment);
 
 		allSegments[i] = new Segment(leds, currentLEDIndex, ledsPerSegment, SegmentDirections[i], initialColor);
+		//DBG Serial.printf("Segment addr= %d\n", allSegments[i]);
 		if(Displays[diplayIndex[i]] == nullptr)
 		{
 			Displays[diplayIndex[i]] = new SevenSegment(SegmentDisplayModes[diplayIndex[i]], animationManager);
 		}
 		Displays[diplayIndex[i]]->add(allSegments[i], SegmentPositions[i]);
+		//DBG Serial.printf("Displays[%d]->add(%d, %d)\n", diplayIndex[i], allSegments[i], SegmentPositions[i]);
 		currentLEDIndex += ledsPerSegment;
 	}
 	//set the initial brightness to avoid jumps
@@ -286,6 +288,37 @@ void DisplayManager::handle()
 	}
 }
 
+void DisplayManager::displayTemperature(uint8_t Temp1, uint8_t Temp2)
+{
+	// negative temperature not accepted as it is an indoor pool
+	if (Temp1 < 0) Temp1 = 0;
+	if (Temp2 < 0) Temp2 = 0;
+
+	uint8_t firstTempDigit = 0;
+
+	firstTempDigit = Temp1 / 10;
+	if(firstTempDigit == 0 && DISPLAY_SWITCH_OFF_AT_0 == true)
+	{
+		Displays[HIGHER_DIGIT_TEMP1_DISPLAY]->off();
+	}
+	else
+	{
+		Displays[HIGHER_DIGIT_TEMP1_DISPLAY]->DisplayNumber(firstTempDigit);
+	}
+	Displays[LOWER_DIGIT_TEMP1_DISPLAY]->DisplayNumber(Temp1 - firstTempDigit * 10); //get the last digit
+
+	firstTempDigit = Temp2 / 10;
+	if(firstTempDigit == 0 && DISPLAY_SWITCH_OFF_AT_0 == true)
+	{
+		Displays[HIGHER_DIGIT_TEMP2_DISPLAY]->off();
+	}
+	else
+	{
+		Displays[HIGHER_DIGIT_TEMP2_DISPLAY]->DisplayNumber(firstTempDigit);
+	}
+	Displays[LOWER_DIGIT_TEMP2_DISPLAY]->DisplayNumber(Temp2 - firstTempDigit * 10); //get the last digit
+}
+
 void DisplayManager::setInternalLEDColor(CRGB color)
 {
 	for (uint16_t i = 0; i < ADDITIONAL_LEDS; i++)
@@ -360,12 +393,12 @@ void DisplayManager::updateProgress(uint32_t progress)
 
 void DisplayManager::delay(uint32_t timeInMs)
 {
-	unsigned long startMillis = millis();
-	Serial.printf("delayInMs   : %d\n", timeInMs);
-	Serial.printf("startMillis : %d\n", startMillis);
+	//DBG unsigned long startMillis = millis();
+	//DBG Serial.printf("delayInMs   : %d\n", timeInMs);
+	//DBG Serial.printf("startMillis : %d\n", startMillis);
 	animationManager->delay(timeInMs);
-	unsigned long endMillis = millis();
-	Serial.printf("endMillis   : %d\n", endMillis);
+	//DBG unsigned long endMillis = millis();
+	//DBG Serial.printf("endMillis   : %d\n", endMillis);
 }
 
 void DisplayManager::setGlobalBrightness(uint8_t brightness, bool enableSmoothTransition)
@@ -392,7 +425,9 @@ void DisplayManager::setGlobalBrightness(uint8_t brightness, bool enableSmoothTr
 void DisplayManager::flashSeparationDot(uint8_t numDots)
 {
 	#if DISPLAY_FOR_SEPARATION_DOT > -1
+		//DBG Serial.printf("Displays[%d]->FlashMiddleDot(%d) ... Before\n", DISPLAY_FOR_SEPARATION_DOT,numDots);
 		Displays[DISPLAY_FOR_SEPARATION_DOT]->FlashMiddleDot(numDots);
+		//DBG Serial.printf("Displays[%d]->FlashMiddleDot(%d) ... After\n", DISPLAY_FOR_SEPARATION_DOT,numDots);
 	#endif
 }
 

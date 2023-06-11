@@ -138,7 +138,7 @@
 /**
  * \brief Color of the LEDs signaling a successful WIFI connection
  */
-#define WIFI_CONNECTION_SUCCESSFUL_COLOR	CRGB::Green
+#define WIFI_CONNECTION_SUCCESSFUL_COLOR	CRGB::Red
 
 /**
  * \brief Color of the LEDs if system is waiting for WIFI smart config
@@ -194,7 +194,7 @@
 /**
  * \brief Default brightness of the display. If you are using blynk you may ignore this setting.
  */
-#define DEFAULT_CLOCK_BRIGHTNESS 128
+#define DEFAULT_CLOCK_BRIGHTNESS 192
 
 /**
  * \brief Whether to activate night mode or not. If you want the clock to reduce brightness/switch off during certain hours set this to true.
@@ -227,7 +227,7 @@
 	/**
 	 * \brief Brightness that the clock should be set to while night mode is active
 	 */
-	#define DEFAULT_NIGHT_MODE_BRIGHTNESS 0
+	#define DEFAULT_NIGHT_MODE_BRIGHTNESS 64
 
 #endif
 
@@ -353,12 +353,12 @@ enum DisplayIDs {
 /**
  * \brief Length of the dot/s fading animation. One flash fades in and out
  */
-#define DOT_FLASH_SPEED 2000
+#define DOT_FLASH_SPEED 1000
 
 /**
  * \brief Intervale in which the dot/s should flash
  */
-#define DOT_FLASH_INTERVAL	4000
+#define DOT_FLASH_INTERVAL	2000
 
 /**
  * \brief Number of separation dots to use by default (or if no blynk functionality is available)
