@@ -6,6 +6,9 @@
 .vscode/settings.json
 .vscode/tasks.json
 
+# file containing secrets
+Secrets.h
+
 # generated documentation
 doc/_build
 doc/_static

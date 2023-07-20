@@ -88,10 +88,23 @@
 		/**
 		 * \brief WIFI_SSID and WIFI_PW are only needed if smart setup is disabled
 		 */
-		#define WIFI_SSID	"TP-Link_D50E"        // TODOPROD "SET_YOUR_SSID_HERE"
-		#define WIFI_PW		"17084826"            // TODOPROD "SET_YOUR_PASSWORD_HERE"
+		#include "Secrets.h"  // To include the WIFI SSID and Password
 		#define WIFI_WITHOUT_SCANNING_PHASE false // TODOPROD false
 	#endif
+
+	/**
+	 * \brief Use the static IP to setup the wifi network. 
+	 */
+	#define USE_STATIC_IP_CONFIG	true // TODOPROD true
+
+	#if USE_STATIC_IP_CONFIG == true
+		#define MY_IP_ADDRESS         192,168,  1,24
+		#define MY_IP_GATEWAY_ADDRESS 192,168,  1, 1
+		#define MY_IP_SUBNET_ADDRESS  255,255,255, 0
+		#define PRIMARY_DNS             8,  8,  8, 8
+		#define SECONDARY_DNS           8,  8,  4, 4
+	#endif
+
 
 #endif
 

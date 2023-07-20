@@ -198,6 +198,20 @@ void TimerDone()
 			WiFi.reconnect(); //try to reconnect
 			Serial.println("Trying to reconnect to previous wifi network");
 		#else
+
+		  #if USE_STATIC_IP_CONFIG == true
+		    Serial.println("WIFI config ...");
+		    // Configures static IP address
+		    IPAddress local_IP(MY_IP_ADDRESS);
+		    IPAddress gateway(MY_IP_GATEWAY_ADDRESS);
+		    IPAddress subnet(MY_IP_SUBNET_ADDRESS);
+		    IPAddress primaryDNS(PRIMARY_DNS);
+		    IPAddress secondaryDNS(SECONDARY_DNS);
+  		    if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS)) {
+		      Serial.println("STA Failed to configure");
+  		    }
+		  #endif
+		  
 		  Serial.println("WIFI begin ...");
 		  #if WIFI_WITHOUT_SCANNING_PHASE == true
 			WiFi.begin(WIFI_SSID, WIFI_PW, 6 );   // specify the WiFi channel number (6) when calling WiFi.begin(). This skips the WiFi scanning phase and saves about 4 seconds when connecting to the WiFi.
