@@ -24,6 +24,20 @@
 	Sensor_AM232X* am232x = Sensor_AM232X::getInstance();
 #endif
 
+#if WATER_TEMP_SENSOR == true
+	#include "Sensor_DS18B20.h"
+	OneWire oneWire(WATER_TEMP_PIN); // Setup a oneWire instance to communicate with any OneWire devices (not just Maxim/Dallas temperature ICs)
+	DallasTemperature dallasWaterTemp(&oneWire); // Pass our oneWire reference to Dallas Temperature.
+	Sensor_DS18B20* DS18B20Sensors = Sensor_DS18B20::getInstance();
+#endif
+
+#if PIR_SENSOR == true
+	#include "Sensor_HCSR501.h"
+	Sensor_HCSR501* PIRSensor = Sensor_HCSR501::getInstance();
+	bool isDetected = false;
+	bool previousIsDetected = false;
+#endif
+
 DisplayManager* PoolClockDisplays = DisplayManager::getInstance();
 TimeManager* timeM = TimeManager::getInstance();
 ClockState* states = ClockState::getInstance();
@@ -143,7 +157,35 @@ void setup()
 		{
 			Serial.println("[E] Initialization FAILED !!");
 		}
+	#endif
 
+	#if WATER_TEMP_SENSOR == true
+  		DS18B20Sensors->init(dallasWaterTemp);
+
+  		int DS18B20SensorsNumber = DS18B20Sensors->getDeviceCount();
+  		Serial.printf("%d DS18B20 sensors found\n",DS18B20SensorsNumber);
+
+		for (int i = 0; i< DS18B20SensorsNumber; i++){
+			std::string deviceAddrStr = DS18B20Sensors->getDeviceAddress(i);
+			Serial.printf("sensor address [%d] : %s\n",i , deviceAddrStr.c_str() );
+			if (deviceAddrStr == waterThermometerAddress) {
+				DS18B20Sensors->addDevice(waterThermometerName, waterThermometerAddress);
+			} else {
+				Serial.printf("Unknown temperature sensor found. Its address is: %s\n",deviceAddrStr.c_str());
+			}
+		} 
+	#endif
+
+	#if PIR_SENSOR == true
+		Serial.println("PIR Motion Sensor Initialization ...");
+  		if (PIRSensor->init(PIR_SENSOR_PIN, PIR_SENSOR_DELAY))   // consider a delay of 5 minutes when the PIR sensor detects a motion
+		{
+		    Serial.println("Initialization OK");
+		}
+		else
+		{
+		    Serial.println("Initialization FAILED");
+		}
 	#endif
 
 	Serial.println("Displaying startup animation...");
@@ -175,6 +217,32 @@ void loop()
 	#if AIR_TEMP_SENSOR == true
 		am232x->handle();
 	#endif
+
+	#if WATER_TEMP_SENSOR == true
+		DS18B20Sensors->requestTemperatures();
+	#endif
+
+	#if PIR_SENSOR == true
+	    isDetected = PIRSensor->isMotionDetected();
+	
+		if (isDetected)
+		{
+			if (previousIsDetected != isDetected)
+			{
+				Serial.println("Motion is detected");
+				previousIsDetected = isDetected;
+			}
+		}
+		else
+		{
+			if (previousIsDetected != isDetected)
+			{
+				Serial.println("No Motion detected");
+				previousIsDetected = isDetected;
+			}
+		}
+	#endif
+
 }
 
 void AlarmTriggered()

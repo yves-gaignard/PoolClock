@@ -16,7 +16,7 @@
 #include "LogManager.h"
 
 // Default values
-static int const DEFAULT_LOG_LEVEL   = LOG_VERBOSE;
+static int const DEFAULT_LOG_LEVEL   = LOG_WARNING;
 static Stream *  DEFAULT_OUTPUT_STREAM = &Serial;
 
 // Constructor

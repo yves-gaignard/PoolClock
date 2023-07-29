@@ -439,13 +439,14 @@ enum DisplayIDs {
 /**
  * \brief Enable automatic light on when a person is detected by the PIR sensor
  */
-#define PIR_SENSOR			false //TODOPROD true
+#define PIR_SENSOR			true //TODOPROD true
 
 #if PIR_SENSOR == true
-/**
+	/**
 	 * \brief ADC pin to which the PIR sensor is connected to
 	 */
 	#define PIR_SENSOR_PIN			25
+	#define PIR_SENSOR_DELAY        5*60*1000ul
 #endif
 
 /***************************
@@ -483,6 +484,8 @@ enum DisplayIDs {
 	 * \brief ADC pin to water temperature sensor is connected to
 	 */
 	#define WATER_TEMP_PIN			4
+	#define waterThermometerName    "Water Thermometer"
+	#define waterThermometerAddress "28881B94970E03DA" 
 #endif
 
 /***************************

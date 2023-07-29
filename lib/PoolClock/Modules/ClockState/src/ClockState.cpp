@@ -20,6 +20,7 @@ ClockState::ClockState()
 	timeM = TimeManager::getInstance();
 	PoolClockDisplays = DisplayManager::getInstance();
 	am232x = Sensor_AM232X::getInstance();
+	DS18B20Sensors = Sensor_DS18B20::getInstance();
 
 }
 
@@ -146,7 +147,7 @@ void ClockState::handleStates()
 			break;
 		}
 		// Display of temperature
-		PoolClockDisplays->displayTemperature(am232x->getTemperature(), am232x->getHumidity(), 29.12, 0.0);
+		PoolClockDisplays->displayTemperature(am232x->getTemperature(), am232x->getHumidity(), DS18B20Sensors->getPreciseTempCByAddress(waterThermometerAddress), 0.0);
 	}
 	//DBG Serial.println("ClockState::handleStates() ... End");
 }

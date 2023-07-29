@@ -14,6 +14,9 @@
 #if AIR_TEMP_SENSOR == true
 	#include "Sensor_AM232X.h"
 #endif
+#if WATER_TEMP_SENSOR == true
+	#include "Sensor_DS18B20.h"
+#endif
 
 
 /**
@@ -31,6 +34,7 @@ private:
 	TimeManager* timeM;
 	DisplayManager* PoolClockDisplays;
     Sensor_AM232X* am232x;
+    Sensor_DS18B20* DS18B20Sensors;
 
 	static ClockState* instance;
 	unsigned long lastDotFlash;
