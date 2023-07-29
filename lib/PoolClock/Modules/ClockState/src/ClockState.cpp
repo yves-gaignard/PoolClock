@@ -19,6 +19,8 @@ ClockState::ClockState()
 	isinNightMode = false;
 	timeM = TimeManager::getInstance();
 	PoolClockDisplays = DisplayManager::getInstance();
+	am232x = Sensor_AM232X::getInstance();
+
 }
 
 ClockState::~ClockState()
@@ -78,7 +80,7 @@ void ClockState::handleStates()
 					}
 				}
 			#endif
-			Serial.printf("PoolClockDisplays->displayTime... %d:%d:%d\n",currentTime.hours, currentTime.minutes, currentTime.seconds);
+			Serial.printf("PoolClockDisplays->displayTime... %02d:%02d:%02d\n",currentTime.hours, currentTime.minutes, currentTime.seconds);
 			PoolClockDisplays->displayTime(currentTime.hours, currentTime.minutes);
 			#if DISPLAY_FOR_SEPARATION_DOT > -1
 				if(numDots > 0)
@@ -95,7 +97,7 @@ void ClockState::handleStates()
 		break;
 		case ClockState::TIMER_MODE:
 			currentTime = timeM->getRemainingTimerTime();
-			Serial.printf("PoolClockDisplays->displayTimer... %d:%d:%d\n",currentTime.hours, currentTime.minutes, currentTime.seconds);
+			Serial.printf("PoolClockDisplays->displayTimer... %02d:%02d:%02d\n",currentTime.hours, currentTime.minutes, currentTime.seconds);
 			PoolClockDisplays->displayTimer(currentTime.hours, currentTime.minutes, currentTime.seconds);
 		break;
 		case ClockState::TIMER_NOTIFICATION:
@@ -144,7 +146,7 @@ void ClockState::handleStates()
 			break;
 		}
 		// Display of temperature
-		PoolClockDisplays->displayTemperature(34, 29);
+		PoolClockDisplays->displayTemperature(am232x->getTemperature(), am232x->getHumidity(), 29.12, 0.0);
 	}
 	//DBG Serial.println("ClockState::handleStates() ... End");
 }

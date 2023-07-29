@@ -51,8 +51,8 @@ private:
     CubicEase* lightSensorEasing;
 	Animator::ComplexAnimationInstance* loadingAnimationID;
 
-	uint8_t Temp1;
-	uint8_t Temp2;
+	uint8_t _Temp1;
+	uint8_t _Temp2;
 
 	uint32_t progressTotal;
 	uint32_t currentProgressOffset;
@@ -166,7 +166,7 @@ public:
 	 * \param Temp1 Number to show on the temp1 display
 	 * \param Temp2 Number to show on the temp2 display
 	 */
-	void displayTemperature(uint8_t Temp1, uint8_t Temp2);
+	void displayTemperature(float Temp1, float Humidity1, float Temp2, float Humidity2);
 
 	/**
 	 * \brief Sets the color of the interrior LEDs and displays it immediately

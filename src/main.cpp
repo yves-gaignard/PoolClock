@@ -19,6 +19,11 @@
 	#include "BlynkConfig.h"
 #endif
 
+#if AIR_TEMP_SENSOR == true
+	#include "Sensor_AM232X.h"
+	Sensor_AM232X* am232x = Sensor_AM232X::getInstance();
+#endif
+
 DisplayManager* PoolClockDisplays = DisplayManager::getInstance();
 TimeManager* timeM = TimeManager::getInstance();
 ClockState* states = ClockState::getInstance();
@@ -132,6 +137,15 @@ void setup()
 	timeM->setTimerDoneCallback(TimerDone);
 	timeM->setAlarmCallback(AlarmTriggered);
 
+	#if AIR_TEMP_SENSOR == true
+		Serial.println("initialize air temperature sensor ...");
+		if (! am232x->init(I2C_SDA_PIN, I2C_SCL_PIN, AIR_TEMP_READ_FREQUENCY) ) 
+		{
+			Serial.println("[E] Initialization FAILED !!");
+		}
+
+	#endif
+
 	Serial.println("Displaying startup animation...");
 	startupAnimation();
 	Serial.println("Setup done...");
@@ -157,6 +171,10 @@ void loop()
     PoolClockDisplays->handle();
 	//DBG Serial.println("timeM->handle()...");
 	timeM->handle();
+
+	#if AIR_TEMP_SENSOR == true
+		am232x->handle();
+	#endif
 }
 
 void AlarmTriggered()

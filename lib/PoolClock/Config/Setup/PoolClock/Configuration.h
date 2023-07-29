@@ -325,7 +325,7 @@ enum DisplayIDs {
 /**
  * \brief If set to true the higher displays will turn off in case they would show 0
  */
-#define DISPLAY_SWITCH_OFF_AT_0 	false
+#define DISPLAY_SWITCH_OFF_AT_0 	true
 
 /**
  * \brief If set to true 24 hour format will be used. For this one additional column is needed in the shelf to display it correctly
@@ -389,24 +389,24 @@ enum DisplayIDs {
 /**
  * \brief Enable automatic brightness adjustments based on a light sensor
  */
-#define ENABLE_LIGHT_SENSOR			false
+#define ENABLE_LIGHT_SENSOR			true //TODOPROD true
 
 #if ENABLE_LIGHT_SENSOR == true
 	/**
 	 * \brief ADC pin to which the light sensor is connected to
 	 */
-	#define LIGHT_SENSOR_PIN			34
+	#define LIGHT_SENSOR_PIN			19
 
 	/**
 	 * \brief How many measurements shall be averaged. Higher number -> smoother but slower change
 	 */
-	#define LIGHT_SENSOR_AVERAGE		15
+	#define LIGHT_SENSOR_AVERAGE		20
 
 	/**
 	 * \brief Width of the median calculation. Higher number -> smoother change
 	 * 		  Should never be higher than the LIGHT_SENSOR_AVERAGE
 	 */
-	#define LIGHT_SENSOR_MEDIAN_WIDTH	5
+	#define LIGHT_SENSOR_MEDIAN_WIDTH	10
 
 	/**
 	 * \brief Time that should pass before the light sensor is read again. Higher number -> slower adjustments but also changes will be more sudden
@@ -430,13 +430,121 @@ enum DisplayIDs {
 
 #endif
 
+/***************************
+*
+* PIR sensor settings
+*
+*****************************/
+
+/**
+ * \brief Enable automatic light on when a person is detected by the PIR sensor
+ */
+#define PIR_SENSOR			false //TODOPROD true
+
+#if PIR_SENSOR == true
+/**
+	 * \brief ADC pin to which the PIR sensor is connected to
+	 */
+	#define PIR_SENSOR_PIN			25
+#endif
+
+/***************************
+*
+* Push Buttons settings
+*
+*****************************/
+/**
+ * \brief Push button definition
+ */
+#define PUSH_BUTTONS			true //TODOPROD true
+
+#if PUSH_BUTTONS == true
+/**
+	 * \brief ADC pin to push button is connected to
+	 */
+	#define BUTTON_MODE_PIN			12
+	#define BUTTON_PLUS_PIN			14
+	#define BUTTON_PLAY_PAUSE_PIN	27
+	#define BUTTON_MINUS_PIN		26
+#endif
+
+/***************************
+*
+* Water Temperature settings
+*
+*****************************/
+/**
+ * \brief Water Temperature definition
+ */
+#define WATER_TEMP_SENSOR			true //TODOPROD true
+
+#if WATER_TEMP_SENSOR == true
+/**
+	 * \brief ADC pin to water temperature sensor is connected to
+	 */
+	#define WATER_TEMP_PIN			4
+#endif
+
+/***************************
+*
+* I2C sensor settings
+*
+*****************************/
+/**
+ * \brief I2C sensor definition
+ */
+#define I2C_SENSOR			true //TODOPROD true
+
+#if I2C_SENSOR == true
+/**
+	 * \brief I2C pins 
+	 */
+	#define I2C_SDA_PIN			21
+	#define I2C_SCL_PIN			22
+#endif
+
+/***************************
+*
+* Air temperature sensor ID settings
+*
+*****************************/
+/**
+ * \brief Air temperature sensor ID definition
+ */
+#define AIR_TEMP_SENSOR			true //TODOPROD true
+
+#if AIR_TEMP_SENSOR == true
+/**
+	 * \brief Frequency to read the air temperature in ms
+	 */
+	#define AIR_TEMP_READ_FREQUENCY	5000
+#endif
+
+/***************************
+*
+* LCD screen settings
+*
+*****************************/
+/**
+ * \brief LCD Screen definition
+ */
+#define LCD_SCREEN			true //TODOPROD true
+
+#if LCD_SCREEN == true
+/**
+	 * \brief LCD Screen   
+	 */
+	#define LCD_ID			"xxxxxx"
+	#define LCD_HEIGHT		20
+	#define LCD_WIDTH		4
+#endif
+
 
 /*********************************
 *
 *	Misc settings:
 *
 **********************************/
-
 
 /**
  * \brief enable for wifi less operation or to demo all the animations

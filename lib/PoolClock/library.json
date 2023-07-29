@@ -21,6 +21,7 @@
             "-I Modules/ClockState/inc",
             "-I Modules/DisplayManager/inc",
             "-I Modules/LogManager/inc",
+            "-I Modules/Sensors/inc",
             "-I Modules/SevenSegment/inc",
             "-I Modules/TempManager/inc",
             "-I Modules/TimeManager/inc",

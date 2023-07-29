@@ -11,6 +11,10 @@
 #include <Arduino.h>
 #include "TimeManager.h"
 #include "DisplayManager.h"
+#if AIR_TEMP_SENSOR == true
+	#include "Sensor_AM232X.h"
+#endif
+
 
 /**
  * \brief The clockState is responsible to hold all the data that needs to be communicated between components.
@@ -26,6 +30,8 @@ public:
 private:
 	TimeManager* timeM;
 	DisplayManager* PoolClockDisplays;
+    Sensor_AM232X* am232x;
+
 	static ClockState* instance;
 	unsigned long lastDotFlash;
     ClockStates MainState;

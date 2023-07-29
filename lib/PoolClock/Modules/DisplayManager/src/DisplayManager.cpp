@@ -42,6 +42,7 @@ DisplayManager::DisplayManager()
 	setGlobalBrightness(128, false);
 
 	#if ENABLE_LIGHT_SENSOR == true
+	    pinMode (LIGHT_SENSOR_PIN, INPUT); // define photosensitive resistance sensor as the input interface
 		lastSensorMeasurement = 0;
 		takeBrightnessMeasurement();
 	#endif
@@ -89,7 +90,19 @@ void DisplayManager::takeBrightnessMeasurement()
 	{
 		uint8_t lightSensorBrightnessNew = 0;
 		lastSensorMeasurement = millis();
-		lightSensorMeasurements.add(analogRead(LIGHT_SENSOR_PIN));
+		//lightSensorMeasurements.add(analogRead(LIGHT_SENSOR_PIN));
+		uint16_t val = digitalRead(LIGHT_SENSOR_PIN); 
+		if ( val == LOW)  // val is LOW means it is the complete brightness
+		{
+			//Serial.printf("Read brightness value = LOW ==> Complete Brightness\n\r");
+    		lightSensorMeasurements.add(LIGHT_SENSOR_MAX);
+		}
+		else // val is HIGH means it is the complete darkness
+		{
+			//Serial.printf("Read brightness value = HIGH ==> Complete Darkness\n\r");
+    		lightSensorMeasurements.add(LIGHT_SENSOR_MIN);
+		}
+
 		if(lightSensorMeasurements.size() >= LIGHT_SENSOR_AVERAGE)
 		{
 			lightSensorMeasurements.shift();
@@ -125,9 +138,10 @@ void DisplayManager::takeBrightnessMeasurement()
 		if(lightSensorBrightnessNew != lightSensorBrightness)
 		{
 			lightSensorBrightness = lightSensorBrightnessNew;
+			Serial.printf("Light sensor brightness: %d\n\r", lightSensorBrightness);
 			setGlobalBrightness(currentLEDBrightness);
 		}
-		// Serial.printf("Sensor brightness: %d\n\r", lightSensorBrightness);
+
 	}
 }
 #endif
@@ -285,18 +299,25 @@ void DisplayManager::handle()
 			LEDBrightnessCurrent = LEDBrightnessSmoothingStartPoint + lightSensorEasing->easeInOut(currentMillis - lastBrightnessChange);
 		}
 		FastLED.setBrightness(LEDBrightnessCurrent);
+		//Serial.printf("Set Sensor brightness in handle: %d\n\r", lightSensorBrightness);
+
 	}
 }
 
-void DisplayManager::displayTemperature(uint8_t Temp1, uint8_t Temp2)
+void DisplayManager::displayTemperature(float Temp1, float Humidity1, float Temp2, float Humidity2)
 {
+	int iTemp1 = round(Temp1);
+	int iTemp2 = round(Temp2);
+	int iHumidity1 = round(Humidity1);
+	int iHumidity2 = round(Humidity2);
+
 	// negative temperature not accepted as it is an indoor pool
-	if (Temp1 < 0) Temp1 = 0;
-	if (Temp2 < 0) Temp2 = 0;
+	if (iTemp1 < 0) iTemp1 = 0;
+	if (iTemp2 < 0) iTemp2 = 0;
 
 	uint8_t firstTempDigit = 0;
 
-	firstTempDigit = Temp1 / 10;
+	firstTempDigit = iTemp1 / 10;
 	if(firstTempDigit == 0 && DISPLAY_SWITCH_OFF_AT_0 == true)
 	{
 		Displays[HIGHER_DIGIT_TEMP1_DISPLAY]->off();
@@ -305,9 +326,9 @@ void DisplayManager::displayTemperature(uint8_t Temp1, uint8_t Temp2)
 	{
 		Displays[HIGHER_DIGIT_TEMP1_DISPLAY]->DisplayNumber(firstTempDigit);
 	}
-	Displays[LOWER_DIGIT_TEMP1_DISPLAY]->DisplayNumber(Temp1 - firstTempDigit * 10); //get the last digit
+	Displays[LOWER_DIGIT_TEMP1_DISPLAY]->DisplayNumber(iTemp1 - firstTempDigit * 10); //get the last digit
 
-	firstTempDigit = Temp2 / 10;
+	firstTempDigit = iTemp2 / 10;
 	if(firstTempDigit == 0 && DISPLAY_SWITCH_OFF_AT_0 == true)
 	{
 		Displays[HIGHER_DIGIT_TEMP2_DISPLAY]->off();
@@ -316,7 +337,11 @@ void DisplayManager::displayTemperature(uint8_t Temp1, uint8_t Temp2)
 	{
 		Displays[HIGHER_DIGIT_TEMP2_DISPLAY]->DisplayNumber(firstTempDigit);
 	}
-	Displays[LOWER_DIGIT_TEMP2_DISPLAY]->DisplayNumber(Temp2 - firstTempDigit * 10); //get the last digit
+	Displays[LOWER_DIGIT_TEMP2_DISPLAY]->DisplayNumber(iTemp2 - firstTempDigit * 10); //get the last digit
+
+	//Serial.printf("PoolClockDisplays->displayTemperature... T indoor=%04.2f T water=%04.2f\n",Temp1, Temp2);
+	Serial.printf("PoolClockDisplays->displayTemperature... T-indoor=%02d H-indoor=%02d T-water=%02d H-water=%02d\n",iTemp1, iHumidity1, iTemp2, iHumidity2);
+
 }
 
 void DisplayManager::setInternalLEDColor(CRGB color)
@@ -407,6 +432,7 @@ void DisplayManager::setGlobalBrightness(uint8_t brightness, bool enableSmoothTr
 
 	#if ENABLE_LIGHT_SENSOR == true
 		LEDBrightnessSetPoint = constrain(brightness - lightSensorBrightness, 0, 255);
+		Serial.printf("Set the LED Brightness: %d\n\r", LEDBrightnessSetPoint);
 	#else
 		LEDBrightnessSetPoint = brightness;
 	#endif
@@ -419,6 +445,8 @@ void DisplayManager::setGlobalBrightness(uint8_t brightness, bool enableSmoothTr
 	{
 		LEDBrightnessSmoothingStartPoint = LEDBrightnessCurrent = LEDBrightnessSetPoint;
 		FastLED.setBrightness(LEDBrightnessCurrent);
+		Serial.printf("Get Global brightness: %d\n\r", lightSensorBrightness);
+
 	}
 }
 
