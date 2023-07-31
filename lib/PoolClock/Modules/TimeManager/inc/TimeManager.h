@@ -1,6 +1,6 @@
 /**
  * \file TimeManager.h
- * \author Florian Laschober
+ * \author Yves Gaignard
  * \brief Class deinition for the Time manager
  */
 
@@ -46,6 +46,13 @@ public:
 		SATURDAY 	= 0x20,
 		SUNDAY 		= 0x40
 	};
+
+    enum TimeFormat 
+	{ 
+		HourMinFormat,     // Format:  "HH:MM"
+		HourMinSecFormat,  // Format:  "HH!MM:SS"
+		MinSecFormat       // Format:  "MM:SS"
+	} ;
 
 	/**
 	 * \brief Timer callback function type which is called if a timer ticks or is elapsed or an alrm is triggered
@@ -117,9 +124,9 @@ public:
 	TimeInfo getRemainingTimerTime();
 
 	/**
-	 * \brief get the current time as a string
+	 * \brief get the current time as a string specifying a format 
 	 */
-	String getCurrentTimeString();
+	String getCurrentTimeString(TimeManager::TimeFormat timeFormat = HourMinFormat);
 
 	/**
 	 * \brief Set the duration for the Timer

@@ -20,6 +20,7 @@
             "-I Modules/Animator/inc",
             "-I Modules/ClockState/inc",
             "-I Modules/DisplayManager/inc",
+            "-I Modules/LCDManager/inc",
             "-I Modules/LogManager/inc",
             "-I Modules/Sensors/inc",
             "-I Modules/SevenSegment/inc",

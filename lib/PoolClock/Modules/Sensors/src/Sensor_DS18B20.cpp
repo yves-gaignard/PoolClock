@@ -16,7 +16,6 @@
 // Standard library definitions
 #include <Arduino.h>
 
-#include <TempManager.h>           // Management of temperature sensor
 #include <LogManager.h>
 #include <Utilities.h>
 

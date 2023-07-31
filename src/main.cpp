@@ -4,8 +4,19 @@
  * \brief Glue logic to bring together all the modules and some additional stuff
  */
 
-#include "Configuration.h"
 #include <Arduino.h>
+#include <string>
+
+// Project name, version and author
+// ---------------------------------
+struct ProjectStructure {
+  std::string Name;
+  std::string Version;
+  std::string Author;
+};
+const ProjectStructure Project {"Pool Clock", "1.0.0", "Yves Gaignard"};
+
+#include "Configuration.h"
 #include "DisplayManager.h"
 #include "ClockState.h"
 
@@ -36,6 +47,15 @@
 	Sensor_HCSR501* PIRSensor = Sensor_HCSR501::getInstance();
 	bool isDetected = false;
 	bool previousIsDetected = false;
+#endif
+
+#if LCD_SCREEN == true
+	#include "LCDManager.h"
+	#include "LCDScreens.h"
+	#include "Utilities.h"
+	void LCDScreen_Init(const ProjectStructure Project);
+	LCDManager lcd(LCD_ID, LCD_COLS, LCD_LINES);
+	LCDScreens screens;
 #endif
 
 DisplayManager* PoolClockDisplays = DisplayManager::getInstance();
@@ -145,7 +165,7 @@ void setup()
 	{
 		Serial.printf("[E]: TimeManager failed to synchronize for the first time with the NTP server. Retrying in %d seconds\n", TIME_SYNC_INTERVAL);
 	}
-	String sCurrentTime = timeM->getCurrentTimeString();
+	String sCurrentTime = timeM->getCurrentTimeString(TimeManager::HourMinSecFormat);
 	Serial.printf("Current time : %s\n", sCurrentTime);
 	timeM->setTimerTickCallback(TimerTick);
 	timeM->setTimerDoneCallback(TimerDone);
@@ -186,6 +206,10 @@ void setup()
 		{
 		    Serial.println("Initialization FAILED");
 		}
+	#endif
+
+	#if LCD_SCREEN == true
+	    LCDScreen_Init(Project);
 	#endif
 
 	Serial.println("Displaying startup animation...");
@@ -243,6 +267,8 @@ void loop()
 		}
 	#endif
 
+	#if LCD_SCREEN == true
+    #endif
 }
 
 void AlarmTriggered()
@@ -469,5 +495,168 @@ void TimerDone()
 		Serial.println("OTA update functionality is ready");
 		Serial.print("IP address: ");
 		Serial.println(WiFi.localIP());
+	}
+#endif
+
+
+#if LCD_SCREEN == true
+	// =================================================================================================
+	//                              SCREEN DEFINITIONS AND RENDERING
+	// =================================================================================================
+
+	void LCDScreen_Init(const ProjectStructure Project) 
+	{
+		std::vector<std::string> screen;
+		/*  
+		|--------------------|
+		|         1         2|
+		|12345678901234567890|
+		|--------------------|
+		|     SCREEN 0       |
+		|--------------------|
+		|Pool Clock          |
+		|Version: 1.0.0      |
+		|                    | 
+		|Yves Gaignard       |
+		|--------------------|
+		*/ 
+		screen.clear();
+		screen.push_back(Project.Name);
+		screen.push_back("Version: " + Project.Version);
+		screen.push_back("");
+		screen.push_back(Project.Author);
+
+		screens.addScreen("Screen Init");
+		screens.setCurrentScreen(0);
+		screens.setInactivityTimeOutReset();
+
+		lcd.init();
+		lcd.clear();
+		lcd.display();
+		lcd.backlight();
+		lcd.printScreen(screen);
+	}
+
+	void LCDScreen_Clock_Mode(TimeManager* currentTime, float temperature1, float humidity1, float temperature2, float humidity2)
+	{
+		std::vector<std::string> screen;
+		std::string DisplayLine;
+		/*  
+		|--------------------|
+		|         1         2|
+		|12345678901234567890|
+		|--------------------|
+		|     SCREEN 1       |
+		|--------------------|
+		|Mode : CLOCK        |
+		|Time : 20:22:44     | 
+		|Air  : T=12.7° H=67%| 
+		|Water: T=29.6°      |
+		|--------------------|
+		*/  
+		char degreeAsciiChar[2];
+		sprintf(degreeAsciiChar, "%c", 176);
+
+		screen.clear();
+		screen.push_back("Mode : CLOCK");
+
+        std::string currentTimeStr  = currentTime->getCurrentTimeString(TimeManager::HourMinSecFormat).c_str();
+		screen.push_back("Time : "+currentTimeStr);
+
+		std::string InAirTemp  = fct_ftoa(temperature1, "%3.1f");
+		std::string InAirHum   = fct_itoa((int) (humidity1 +0.5 - (humidity1<0)));
+		std::string WaterTemp  = fct_ftoa(temperature2, "%3.1f");
+		screen.push_back("Air  : T="+InAirTemp+degreeAsciiChar+" H=:"+InAirHum+"%");
+		screen.push_back("Water: T="+WaterTemp+degreeAsciiChar);
+
+		screens.addOrReplaceScreen("Screen Clock Mode");
+		screens.setCurrentScreen(1);
+
+		lcd.clear();
+		lcd.display();
+		lcd.backlight();
+		lcd.printScreen(screen);
+	}
+
+	void LCDScreen_Timer_Mode(TimeManager* currentTimer, bool isTimerStarted)
+	{
+		std::vector<std::string> screen;
+		std::string DisplayLine;
+		/*  
+		|--------------------|
+		|         1         2|
+		|12345678901234567890|
+		|--------------------|
+		|      SCREEN 2      |         alt+175 »   alt+186 ║   alt+242 ≥
+		|--------------------|
+		|Mode : TIMER        |
+		|Timer: HH:MM:SS     |
+		|    >  START        | or 	|    ║  PAUSE        |       
+		| Mode  CANCEL       | or 	|    ■  STOP         |
+		|--------------------|
+		*/  
+
+		screen.clear();
+		screen.push_back("Mode : TIMER");
+
+        std::string currentTimerStr  = currentTimer->getCurrentTimeString(TimeManager::HourMinSecFormat).c_str();
+		screen.push_back("Timer: "+currentTimerStr);
+
+		if (!isTimerStarted)
+		{
+			screen.push_back("    >  START");	
+			screen.push_back(" Mode  CANCEL");	
+		}
+		else
+		{
+			screen.push_back("    ║  PAUSE");	
+			screen.push_back("    ■  STOP");	
+		}
+
+		screens.addOrReplaceScreen("Screen Timer Mode");
+		screens.setCurrentScreen(2);
+
+		lcd.clear();
+		lcd.display();
+		lcd.backlight();
+		lcd.printScreen(screen);
+	}
+
+	/**
+	 * \brief The LCDScreen_Set_Timer function allows to display into the LCD, the set timer capability
+	 *        The blink digit represent where the blinking cursor is. 
+	 */
+	void LCDScreen_Set_Timer(TimeManager* currentTimer, LCDScreen_TimeDigit digitCursor)   
+	{
+		std::vector<std::string> screen;
+		/*
+		|--------------------|
+		|         1         2|
+		|12345678901234567890|
+		|--------------------|
+		|     SCREEN 3       |
+		|--------------------|
+		|Mode: SET TIMER     |
+		|Duration: HH:MM:SS  |
+		|+/- : Add/Decrease  |
+		|>  Next   Mode: OK  |
+		|--------------------|
+		*/
+		screen.clear();
+		screen.push_back("Mode: SET TIMER");
+
+        std::string currentTimerStr  = currentTimer->getCurrentTimeString(TimeManager::HourMinSecFormat).c_str();
+		screen.push_back("Duration: "+currentTimerStr);
+
+		screen.push_back("+/- : Add/Decrease");	
+		screen.push_back(">  Next   Mode: OK");	
+
+		screens.addOrReplaceScreen("Screen Set Timer");
+		screens.setCurrentScreen(3);
+
+		lcd.clear();
+		lcd.display();
+		lcd.backlight();
+		lcd.printScreen(screen);
 	}
 #endif

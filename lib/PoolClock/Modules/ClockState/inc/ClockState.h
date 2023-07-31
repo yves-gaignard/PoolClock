@@ -17,7 +17,12 @@
 #if WATER_TEMP_SENSOR == true
 	#include "Sensor_DS18B20.h"
 #endif
-
+#if LCD_SCREEN == true
+    enum LCDScreen_TimeDigit { HighHour=0, LowHour=1, HighMinute=2, LowMinute=3, HighSecond=4, LowSecond=5 };
+	extern void LCDScreen_Clock_Mode(TimeManager* currentTime, float temperature1, float humidity1, float temperature2, float humidity2);
+	extern void LCDScreen_Timer_Mode(TimeManager* currentTimer, bool isTimerStarted);
+	extern void LCDScreen_Set_Timer (TimeManager* currentTimer, LCDScreen_TimeDigit digitCursor);
+#endif
 
 /**
  * \brief The clockState is responsible to hold all the data that needs to be communicated between components.
@@ -33,9 +38,12 @@ public:
 private:
 	TimeManager* timeM;
 	DisplayManager* PoolClockDisplays;
+#if AIR_TEMP_SENSOR == true
     Sensor_AM232X* am232x;
+#endif
+#if WATER_TEMP_SENSOR == true
     Sensor_DS18B20* DS18B20Sensors;
-
+#endif
 	static ClockState* instance;
 	unsigned long lastDotFlash;
     ClockStates MainState;

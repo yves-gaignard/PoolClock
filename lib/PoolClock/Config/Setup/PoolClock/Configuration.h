@@ -535,11 +535,11 @@ enum DisplayIDs {
 
 #if LCD_SCREEN == true
 /**
-	 * \brief LCD Screen   
+	 * \brief LCD Screen parameters
 	 */
-	#define LCD_ID			"xxxxxx"
-	#define LCD_HEIGHT		20
-	#define LCD_WIDTH		4
+	#define LCD_ID			0x27
+	#define LCD_COLS		20
+	#define LCD_LINES		4
 #endif
 
 

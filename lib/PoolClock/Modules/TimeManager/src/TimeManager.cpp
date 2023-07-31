@@ -1,6 +1,6 @@
 /**
  * \file TimeManager.cpp
- * \author Florian Laschober
+ * \author Yves Gaignard
  * \brief Implementation of the TimeManager class member functions
  */
 
@@ -78,11 +78,18 @@ bool TimeManager::init()
 	return true;
 }
 
-String TimeManager::getCurrentTimeString()
+String TimeManager::getCurrentTimeString(TimeManager::TimeFormat timeFormat)
 {
 	char buf[6];
 	TimeInfo currentTime = getCurrentTime();
-	sprintf(buf, "%02d:%02d", currentTime.hours, currentTime.minutes);
+	if (timeFormat == HourMinFormat )
+	{
+		sprintf(buf, "%02d:%02d", currentTime.hours, currentTime.minutes);
+	}
+	else if (timeFormat == HourMinSecFormat )
+	{
+		sprintf(buf, "%02d:%02d:%02d", currentTime.hours, currentTime.minutes, currentTime.seconds);
+	}
 	return String(buf);
 }
 
