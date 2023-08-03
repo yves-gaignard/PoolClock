@@ -66,6 +66,10 @@ ClockState* states = ClockState::getInstance();
 	BlynkConfig* BlynkConfiguration = BlynkConfig::getInstance();
 #endif
 
+#if PUSH_BUTTONS == true
+	#include "PoolClockCmd.h"
+	PoolClockCmd* PCCmd = PoolClockCmd::getInstance();
+#endif
 
 #if ENABLE_OTA_UPLOAD == true
 	void setupOTA();
@@ -210,6 +214,10 @@ void setup()
 
 	#if LCD_SCREEN == true
 	    LCDScreen_Init(Project);
+	#endif
+
+	#if PUSH_BUTTONS == true
+		PCCmd->setup();
 	#endif
 
 	Serial.println("Displaying startup animation...");
