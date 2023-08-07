@@ -24,7 +24,6 @@
             "-I Modules/LogManager/inc",
             "-I Modules/Sensors/inc",
             "-I Modules/SevenSegment/inc",
-            "-I Modules/TempManager/inc",
             "-I Modules/TimeManager/inc",
             "-I Modules/Utilities/inc",
             "-I Config/Setup/PoolClock",

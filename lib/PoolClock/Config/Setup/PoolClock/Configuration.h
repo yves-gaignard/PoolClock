@@ -465,7 +465,7 @@ enum DisplayIDs {
 	 */
 	#define BUTTON_MODE_PIN			12
 	#define BUTTON_PLUS_PIN			14
-	#define BUTTON_PLAY_PAUSE_PIN	27
+	#define BUTTON_PLAY_PIN			27
 	#define BUTTON_MINUS_PIN		26
 #endif
 

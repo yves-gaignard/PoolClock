@@ -34,7 +34,7 @@ public:
     /**
      * \brief Avaliable clock modes each with a different behaviour
      */
-	enum ClockStates {CLOCK_MODE, TIMER_MODE, TIMER_NOTIFICATION, ALARM_NOTIFICATION};
+	enum ClockStates {CLOCK_MODE, TIMER_MODE, SET_TIMER, TIMER_NOTIFICATION, ALARM_NOTIFICATION};
 private:
 	TimeManager* timeM;
 	DisplayManager* PoolClockDisplays;
