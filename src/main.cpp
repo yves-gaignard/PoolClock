@@ -24,7 +24,8 @@ const ProjectStructure Project {"Pool Clock", "1.0.0", "Yves Gaignard"};
 	#include "WiFi.h"
 #endif
 #if ENABLE_OTA_UPLOAD == true
-	#include <ArduinoOTA.h>
+	//#include <ArduinoOTA.h>
+	#include "WebSrvManager.h"
 #endif
 #if IS_BLYNK_ACTIVE == true
 	#include "BlynkConfig.h"
@@ -72,7 +73,7 @@ ClockState* states = ClockState::getInstance();
 #endif
 
 #if ENABLE_OTA_UPLOAD == true
-	void setupOTA();
+	//void setupOTA();
 #endif
 #if RUN_WITHOUT_WIFI == false
 	void wifiSetup();
@@ -153,10 +154,8 @@ void setup()
 	#endif
 	#if ENABLE_OTA_UPLOAD == true
 	    Serial.println("OTA setup ...");
-		setupOTA();
-	#endif
-	#if ENABLE_OTA_UPLOAD == true
-		ArduinoOTA.handle(); //give ota the opportunity to update before the main loop starts in case we have a crash in there
+		//setupOTA();
+		WebSrvManager_setup(IS_WEB_SERIAL_ACTIVATED);
 	#endif
 
 	#if IS_BLYNK_ACTIVE == true
@@ -230,7 +229,7 @@ void loop()
 	//DBG Serial.println("Begin of Main Loop...");
 	#if ENABLE_OTA_UPLOAD == true
 	    //DBG Serial.println("ArduinoOTA.handle()...");
-		ArduinoOTA.handle();
+		//ArduinoOTA.handle();
 	#endif
 	//DBG Serial.println("states->handleStates()...");
 	states->handleStates(); //updates display states, switches between modes etc.
@@ -421,6 +420,7 @@ void TimerDone()
 #endif
 
 #if ENABLE_OTA_UPLOAD == true
+	/*
 	bool progressFirstStep = true;
 	void setupOTA()
 	{
@@ -504,6 +504,7 @@ void TimerDone()
 		Serial.print("IP address: ");
 		Serial.println(WiFi.localIP());
 	}
+	*/
 #endif
 
 

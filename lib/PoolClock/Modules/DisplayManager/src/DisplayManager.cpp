@@ -8,7 +8,7 @@
 #include "DisplayManager.h"
 
 DisplayManager* DisplayManager::instance = nullptr;
-LinkedList<DisplayManager::SegmentInstanceError>* DisplayManager::SegmentIndexErrorList = nullptr;
+AnimatorLinkedList::LinkedList<DisplayManager::SegmentInstanceError>* DisplayManager::SegmentIndexErrorList = nullptr;
 
 DisplayManager::DisplayManager()
 {
@@ -119,7 +119,7 @@ void DisplayManager::takeBrightnessMeasurement()
 		}
 		else
 		{
-			LinkedList<uint16_t> sortedMeasurements;
+			AnimatorLinkedList::LinkedList<uint16_t> sortedMeasurements;
 			//copy all the values to a new temporary list in order to sort them
 			for (uint16_t i = 0; i < lightSensorMeasurements.size(); i++)
 			{
@@ -486,7 +486,7 @@ int16_t DisplayManager::getGlobalSegmentIndex(SegmentPositions_t segmentPosition
 	{
 		if(SegmentIndexErrorList == nullptr)
 		{
-			SegmentIndexErrorList = new LinkedList<SegmentInstanceError>();
+			SegmentIndexErrorList = new AnimatorLinkedList::LinkedList<SegmentInstanceError>();
 		}
 		SegmentInstanceError newError = {.segmentPosition = segmentPosition, .Display = Display};
 		SegmentIndexErrorList->add(newError);

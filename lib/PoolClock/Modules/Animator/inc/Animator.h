@@ -8,7 +8,9 @@
 #define __ANIMATOR_H_
 
 #include <Arduino.h>
-#include <LinkedList.h>
+namespace AnimatorLinkedList {
+	#include <LinkedList.h>
+}
 #define FASTLED_INTERNAL
 #include <FastLED.h>
 #include "AnimatableObject.h"
@@ -51,7 +53,7 @@ public:
 	typedef struct {
 		uint8_t animationComplexity;
 		uint16_t LengthPerAnimation;
-		LinkedList<animationStep*>* animations;
+		AnimatorLinkedList::LinkedList<animationStep*>* animations;
 	} ComplexAmination;
 
 	struct ComplexAnimationInstance {
@@ -64,7 +66,7 @@ public:
 
 private:
 	static Animator* currentInstance;
-	LinkedList<AnimatableObject*> AnimatableObjects;
+	AnimatorLinkedList::LinkedList<AnimatableObject*> AnimatableObjects;
 	static unsigned long lastLEDUpdate;
 
 	int16_t getIndexInList(AnimatableObject* object);

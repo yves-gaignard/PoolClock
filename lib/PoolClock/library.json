@@ -27,6 +27,7 @@
             "-I Modules/SevenSegment/inc",
             "-I Modules/TimeManager/inc",
             "-I Modules/Utilities/inc",
+            "-I Modules/WebSrvManager/inc",
             "-I Config/Setup/PoolClock",
             "-I Config/Blynk/default",
             "-I Config/Animations/PoolClock",
