@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="fr">
+    <head>
+        <title>Serveur Pool Manager</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1"charset="UTF-8" />
+        <link rel="icon" type="image/png" href="image/favicon.png">
+        <link rel="stylesheet" type="text/css" title="Pool Clock" href="w3.css">
+        <script type="text/javascript" src="http://cdn.rawgit.com/Mikhus/canvas-gauges/gh-pages/download/2.1.7/all/gauge.min.js"></script>
+    </head>
+
+    <body class="w3-animate-opacity">
+        <div class="w3-card w3-blue w3-padding-small w3-center">
+            <h1>Pool Clock</h1>
+        </div>
+        <div class="w3-row">
+            <div class="w3-third w3-center">
+                <canvas id="gaugeTempAirIn" 
+                    data-type="radial-gauge"
+                    data-width="300"
+                    data-height="300"
+                    data-units="°C"
+                    data-title="Inside Air Temperature"
+                    data-min-value="0"
+                    data-max-value="50"
+                    data-major-ticks="[0,5,10,15,20,25,30,35,40,45,50]"
+                    data-minor-ticks="2"
+                    data-stroke-ticks="true"
+                    data-highlights='[ {"from": 0, "to": 50, "color": "rgba(255, 0, 0, .3)"} ]'
+                    data-ticks-angle="180"
+                    data-start-angle="90"
+                    data-color-major-ticks="#ddd"
+                    data-color-minor-ticks="#ddd"
+                    data-color-title="#eee"
+                    data-color-units="#ccc"
+                    data-color-numbers="#eee"
+                    data-color-plate="#222"
+                    data-border-shadow-width="0"
+                    data-borders="true"
+                    data-needle-type="arrow"
+                    data-needle-width="2"
+                    data-needle-circle-size="7"
+                    data-needle-circle-outer="true"
+                    data-needle-circle-inner="false"
+                    data-animation-duration="1500"
+                    data-animation-rule="linear"
+                    data-color-border-outer="#333"
+                    data-color-border-outer-end="#111"
+                    data-color-border-middle="#222"
+                    data-color-border-middle-end="#111"
+                    data-color-border-inner="#111"
+                    data-color-border-inner-end="#333"
+                    data-color-needle-shadow-down="#333"
+                    data-color-needle-circle-outer="#333"
+                    data-color-needle-circle-outer-end="#111"
+                    data-color-needle-circle-inner="#111"
+                    data-color-needle-circle-inner-end="#222"
+                    data-value-box-border-radius="0"
+                    data-color-value-box-rect="#222"
+                    data-color-value-box-rect-end="#333"
+                    data-value-int="2"
+                    data-value-dec="1"
+                ></canvas>
+            </div>
+            <div class="w3-third w3-center">
+                <canvas id="gaugeTempWater"
+                    data-type="radial-gauge"
+                    data-width="300"
+                    data-height="300"
+                    data-units="°C"
+                    data-title="Water Temperature"
+                    data-min-value="5"
+                    data-max-value="40"
+                    data-major-ticks="[5,10,15,20,25,30,35,40]"
+                    data-minor-ticks="2"
+                    data-stroke-ticks="true"
+                    data-highlights='[ {"from": 5, "to": 40, "color": "rgba(255, 0, 0, .3)"} ]'
+                    data-ticks-angle="180"
+                    data-start-angle="90"
+                    data-color-major-ticks="#ddd"
+                    data-color-minor-ticks="#ddd"
+                    data-color-title="#eee"
+                    data-color-units="#ccc"
+                    data-color-numbers="#eee"
+                    data-color-plate="#222"
+                    data-border-shadow-width="0"
+                    data-borders="true"
+                    data-needle-type="arrow"
+                    data-needle-width="2"
+                    data-needle-circle-size="7"
+                    data-needle-circle-outer="true"
+                    data-needle-circle-inner="false"
+                    data-animation-duration="1500"
+                    data-animation-rule="linear"
+                    data-color-border-outer="#333"
+                    data-color-border-outer-end="#111"
+                    data-color-border-middle="#222"
+                    data-color-border-middle-end="#111"
+                    data-color-border-inner="#111"
+                    data-color-border-inner-end="#333"
+                    data-color-needle-shadow-down="#333"
+                    data-color-needle-circle-outer="#333"
+                    data-color-needle-circle-outer-end="#111"
+                    data-color-needle-circle-inner="#111"
+                    data-color-needle-circle-inner-end="#222"
+                    data-value-box-border-radius="0"
+                    data-color-value-box-rect="#222"
+                    data-color-value-box-rect-end="#333"
+                    data-value-int="2"
+                    data-value-dec="1"
+                ></canvas>
+            </div>
+            <div class="w3-third w3-center">
+                <canvas id="gaugeTempAirOut"
+                    data-type="radial-gauge"
+                    data-width="300"
+                    data-height="300"
+                    data-units="°C"
+                    data-title="Outside Air Temperature"
+                    data-min-value="-20"
+                    data-max-value="40"
+                    data-major-ticks="[-20,-10,0,10,20,30,40]"
+                    data-minor-ticks="2"
+                    data-stroke-ticks="true"
+                    data-highlights='[ {"from": -20, "to": 0, "color": "blue"},{"from": 0, "to": 40, "color": "rgba(255, 0, 0, .3)"} ]'
+                    data-ticks-angle="180"
+                    data-start-angle="90"
+                    data-color-major-ticks="#ddd"
+                    data-color-minor-ticks="#ddd"
+                    data-color-title="#eee"
+                    data-color-units="#ccc"
+                    data-color-numbers="#eee"
+                    data-color-plate="#222"
+                    data-border-shadow-width="0"
+                    data-borders="true"
+                    data-needle-type="arrow"
+                    data-needle-width="2"
+                    data-needle-circle-size="7"
+                    data-needle-circle-outer="true"
+                    data-needle-circle-inner="false"
+                    data-animation-duration="1500"
+                    data-animation-rule="linear"
+                    data-color-border-outer="#333"
+                    data-color-border-outer-end="#111"
+                    data-color-border-middle="#222"
+                    data-color-border-middle-end="#111"
+                    data-color-border-inner="#111"
+                    data-color-border-inner-end="#333"
+                    data-color-needle-shadow-down="#333"
+                    data-color-needle-circle-outer="#333"
+                    data-color-needle-circle-outer-end="#111"
+                    data-color-needle-circle-inner="#111"
+                    data-color-needle-circle-inner-end="#222"
+                    data-value-box-border-radius="0"
+                    data-color-value-box-rect="#222"
+                    data-color-value-box-rect-end="#333"
+                    data-value-int="2"
+                    data-value-dec="1"
+                ></canvas>   
+            </div>
+        </div>
+        <div class="w3-row">
+            <div class="w3-row">
+            </div>
+
+
+            <div class="w3-half w3-center">
+                <button id="refreshControls">Refresh Control</button>
+                <div id="controlTable"></div>
+            </div>
+ 
+            <script type="text/javascript" src="script.js"></script>
+        </body>
+</html>
+
+<!-- 
+Auto Mode
+Filtration
+Heating
+pH Pump
+Chl Pump
+pHPID
+OrpPID
+Relay Filtration
+Relay pH-
+Relay Chlorine
+-->
+
