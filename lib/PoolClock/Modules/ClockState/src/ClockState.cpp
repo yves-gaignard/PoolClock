@@ -1,5 +1,7 @@
 #include "ClockState.h"
+#include "LogManager.h"
 
+#define TAG "ClockState"
 ClockState* ClockState::instance = nullptr;
 
 ClockState::ClockState()
@@ -57,7 +59,7 @@ ClockState::ClockStates ClockState::getMode()
 
 void ClockState::handleStates()
 {
-	//DBG Serial.println("ClockState::handleStates() ... Start");
+	LOG_D(TAG, "ClockState::handleStates() ... Start");
 	if(lastUpdateMillis + TIME_UPDATE_INTERVAL <= millis()) // update the display only in a certain intervall
 	{
 		// ========================
@@ -103,7 +105,7 @@ void ClockState::handleStates()
 					}
 				}
 			#endif
-			Serial.printf("PoolClockDisplays->displayTime... %02d:%02d:%02d\n",currentTime.hours, currentTime.minutes, currentTime.seconds);
+			LOG_I(TAG, "PoolClockDisplays->displayTime... %02d:%02d:%02d",currentTime.hours, currentTime.minutes, currentTime.seconds);
 			PoolClockDisplays->displayTime(currentTime.hours, currentTime.minutes);
 			#if DISPLAY_FOR_SEPARATION_DOT > -1
 				if(numDots > 0)
@@ -111,9 +113,9 @@ void ClockState::handleStates()
 					if(lastDotFlash + DOT_FLASH_INTERVAL <= millis())
 					{
 						lastDotFlash = millis();
-						//DBG Serial.printf("PoolClockDisplays->flashSeparationDot... %d\n",numDots);
+						LOG_D(TAG, "PoolClockDisplays->flashSeparationDot... %d",numDots);
 						PoolClockDisplays->flashSeparationDot(numDots);
-						//DBG Serial.println("PoolClockDisplays->flashSeparationDot...End");
+						LOG_D(TAG, "PoolClockDisplays->flashSeparationDot...End");
 					}
 				}
 			#endif
@@ -123,7 +125,7 @@ void ClockState::handleStates()
 		break;
 		case ClockState::TIMER_MODE:
 			currentTime = timeM->getRemainingTimerTime();
-			Serial.printf("PoolClockDisplays->displayTimer... %02d:%02d:%02d\n",currentTime.hours, currentTime.minutes, currentTime.seconds);
+			LOG_I(TAG, "PoolClockDisplays->displayTimer... %02d:%02d:%02d",currentTime.hours, currentTime.minutes, currentTime.seconds);
 			PoolClockDisplays->displayTimer(currentTime.hours, currentTime.minutes, currentTime.seconds);
 			#if LCD_SCREEN == true
 				LCDScreen_Timer_Mode(timeM, true);
@@ -163,7 +165,7 @@ void ClockState::handleStates()
 				PoolClockDisplays->setGlobalBrightness(0, false);
 			}
 			currentAlarmSignalState = !currentAlarmSignalState;
-			Serial.printf("PoolClockDisplays->displayAlarm... %d:%d:%d\n",currentTime.hours, currentTime.minutes, currentTime.seconds);
+			LOG_I(TAG, "PoolClockDisplays->displayAlarm... %d:%d:%d",currentTime.hours, currentTime.minutes, currentTime.seconds);
 			PoolClockDisplays->displayTime(currentTime.hours, currentTime.minutes);
 			if(!timeM->isAlarmActive())
 			{
@@ -176,5 +178,5 @@ void ClockState::handleStates()
 		}
 
 	}
-	//DBG Serial.println("ClockState::handleStates() ... End");
+	LOG_D(TAG, "ClockState::handleStates() ... End");
 }

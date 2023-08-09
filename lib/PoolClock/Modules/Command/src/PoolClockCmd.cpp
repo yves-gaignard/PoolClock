@@ -4,7 +4,10 @@
  * \brief Implementation of member function of PoolClockCmd 
  */
 
+#define TAG "PoolClockCmd"
+
 #include "PoolClockCmd.h"
+#include "LogManager.h"
 
 /**
  * \note if you use a different controller make sure to change the include here
@@ -111,7 +114,7 @@ void PoolClockCmd::changeSelection(ColorSelector selector, bool state)
 void PoolClockCmd::PoolClockCmdCode(void* pvParameters)
 {
 	Transitions_enum transition;
-	Serial.printf("Loop task running on core %d\n\r", xPortGetCoreID());
+	LOG_I(TAG, "Loop task running on core %d", xPortGetCoreID());
 	PoolClockCmd* ClockUI = PoolClockCmd::getInstance();
 	esp_task_wdt_init(30, false);
 	for(;;)
@@ -172,7 +175,7 @@ void PoolClockCmd::setup()
     _MinusButton->onPressed(PoolClockCmd::Minus_onPressed);
     _MinusButton->onPressedFor(LONG_PRESS_TIME, PoolClockCmd::Minus_onPressedForDuration);
 
-	Serial.println("Starting PoolClockCmd on core 0...");
+	LOG_I(TAG, "Starting PoolClockCmd on core 0...");
 	//Setup the loop task on the second core
 	xTaskCreatePinnedToCore(
 	PoolClockCmdCode,	// Task function.
@@ -189,7 +192,7 @@ void PoolClockCmd::setup()
  */
 
 void PoolClockCmd::Mode_onPressed() {
-    Serial.println("Mode button has been pressed!");
+    LOG_I(TAG, "Mode button has been pressed!");
     _Mode_button_state = PRESSED;
 }
 
@@ -197,35 +200,35 @@ void PoolClockCmd::Mode_onPressed() {
  * \brief Callback to manage Mode button action in case of long press
  */
 void PoolClockCmd::Mode_onPressedForDuration() {
-    Serial.println("Mode button has been pressed for the given duration!");
+    LOG_I(TAG, "Mode button has been pressed for the given duration!");
     _Mode_button_state = LONG_PRESSED;
 }
 
 void PoolClockCmd::Play_onPressed() {
-    Serial.println("Play button has been pressed!");
+    LOG_I(TAG, "Play button has been pressed!");
     _Play_button_state = PRESSED;
 }
 
 void PoolClockCmd::Play_onPressedForDuration() {
-    Serial.println("Play button has been pressed for the given duration!");
+    LOG_I(TAG, "Play button has been pressed for the given duration!");
     _Play_button_state = LONG_PRESSED;
 }
 void PoolClockCmd::Plus_onPressed() {
-    Serial.println("Plus button has been pressed!");
+    LOG_I(TAG, "Plus button has been pressed!");
     _Plus_button_state = PRESSED;
 }
 
 void PoolClockCmd::Plus_onPressedForDuration() {
-    Serial.println("Plus button has been pressed for the given duration!");
+    LOG_I(TAG, "Plus button has been pressed for the given duration!");
     _Plus_button_state = LONG_PRESSED;
 }
 void PoolClockCmd::Minus_onPressed() {
-    Serial.println("Minus button has been pressed!");
+    LOG_I(TAG, "Minus button has been pressed!");
     _Minus_button_state = PRESSED;
 }
 
 void PoolClockCmd::Minus_onPressedForDuration() {
-    Serial.println("Minus button has been pressed for the given duration!");
+    LOG_I(TAG, "Minus button has been pressed for the given duration!");
     _Minus_button_state = LONG_PRESSED;
 }
 
@@ -238,15 +241,15 @@ void PoolClockCmd::state_machine_run(Transitions_enum transition)
 {
     switch(transition)
     {
-        //case NONE:              Serial.println("buttons = NONE");               break;
-        case MODE:              Serial.println("buttons = MODE");               break;
-        case LONG_MODE:         Serial.println("buttons = LONG_MODE");          break;
-        case PLAY:              Serial.println("buttons = PLAY");               break;
-        case LONG_PLAY:         Serial.println("buttons = LONG_PLAY");          break;
-        case PLUS:              Serial.println("buttons = PLUS");               break;
-        case LONG_PLUS:         Serial.println("buttons = LONG_PLUS");          break;
-        case MINUS:             Serial.println("buttons = MINUS");              break;
-        case LONG_MINUS:        Serial.println("buttons = LONG_MINUS");         break;
+        case NONE:              LOG_V(TAG, "buttons = NONE");               break;
+        case MODE:              LOG_I(TAG, "buttons = MODE");               break;
+        case LONG_MODE:         LOG_I(TAG, "buttons = LONG_MODE");          break;
+        case PLAY:              LOG_I(TAG, "buttons = PLAY");               break;
+        case LONG_PLAY:         LOG_I(TAG, "buttons = LONG_PLAY");          break;
+        case PLUS:              LOG_I(TAG, "buttons = PLUS");               break;
+        case LONG_PLUS:         LOG_I(TAG, "buttons = LONG_PLUS");          break;
+        case MINUS:             LOG_I(TAG, "buttons = MINUS");              break;
+        case LONG_MINUS:        LOG_I(TAG, "buttons = LONG_MINUS");         break;
     }
     
     switch(_current_state)
@@ -330,9 +333,9 @@ void PoolClockCmd::state_machine_run(Transitions_enum transition)
         {
             switch(_current_state)
             {
-                case CLOCK:     Serial.println("New current state = CLOCK");               break;
-                case TIMER:     Serial.println("New current state = TIMER");               break;
-                case SET_TIMER: Serial.println("New current state = SET_TIMER");           break;
+                case CLOCK:     LOG_I(TAG, "New current state = CLOCK");               break;
+                case TIMER:     LOG_I(TAG, "New current state = TIMER");               break;
+                case SET_TIMER: LOG_I(TAG, "New current state = SET_TIMER");           break;
             }
         }
     }
@@ -340,71 +343,71 @@ void PoolClockCmd::state_machine_run(Transitions_enum transition)
  
 void PoolClockCmd::NOPE()
 {
-    //Serial.println("Action: NOPE");
+    LOG_V(TAG, "Action: NOPE");
 }
 
 void PoolClockCmd::ChgModeToTimer()
 {
-    Serial.println("Action: Change Mode To Timer");
+    LOG_I(TAG, "Action: Change Mode To Timer");
     //delay(1000);
 }
 
 void PoolClockCmd::ChgModeToSetTimer()
 {
-    Serial.println("Action: Change Mode To Set Timer");
+    LOG_I(TAG, "Action: Change Mode To Set Timer");
     //delay(1000);
 }
 
 void PoolClockCmd::ChgModeToClock()
 {
-    Serial.println("Action: Change Mode To Clock");
+    LOG_I(TAG, "Action: Change Mode To Clock");
     //delay(1000);
 }
 
 void PoolClockCmd::StartPauseResumeTimer()
 {
-    Serial.println("Action: Start Pause Resume Timer");
+    LOG_I(TAG, "Action: Start Pause Resume Timer");
     //delay(500);
 }
 
 void PoolClockCmd::CancelSetTimer()
 {
-    Serial.println("Action: Cancel Set Timer");
+    LOG_I(TAG, "Action: Cancel Set Timer");
     //delay(500);
 }
 
 void PoolClockCmd::ValidateSetTimer()
 {
-    Serial.println("Action: Validate Set Timer");
+    LOG_I(TAG, "Action: Validate Set Timer");
     //delay(500);
 }
 
 void PoolClockCmd::MoveNextDigit()
 {
-    Serial.println("Action: Move Next Digit");
+    LOG_I(TAG, "Action: Move Next Digit");
     //delay(200);
 }
 
 void PoolClockCmd::IncrementDigit()
 {
-    Serial.println("Action: Increment Digit");
+    LOG_I(TAG, "Action: Increment Digit");
     //delay(200);
 }
 
 void PoolClockCmd::IncrementQuicklyDigit()
 {
-    Serial.println("Action: Increment Quickly Digit");
+    LOG_I(TAG, "Action: Increment Quickly Digit");
 }
 
 void PoolClockCmd::DecrementDigit()
 {
-    Serial.println("Action: Decrement Digit");
+    LOG_I(TAG, "Action: Decrement Digit");
     //delay(200);
 }
 
 void PoolClockCmd::DecrementQuicklyDigit()
 {
-    Serial.println("Action: Decrement Quickly Digit");
+    LOG_I(TAG, "Action: Decrement Quickly Digit");
 }
 
 Transitions_enum PoolClockCmd::read_buttons()
@@ -449,9 +452,9 @@ void PoolClockCmd::print_button_state(const char* button_name, Button_State_enum
 #if DEBUG == false
     switch(button_state)
     {
-        //case NOT_PRESSED:          Serial.printf("button = %s   status= %s\n", button_name, state_not_pressed);          break;
-        case PRESSED:              Serial.printf("button = %s - status= %s\n", button_name, state_pressed);              break;
-        case LONG_PRESSED:         Serial.printf("button = %s - status= %s\n", button_name, state_long_pressed);         break;
+        case NOT_PRESSED:          LOG_V(TAG, "button = %s   status= %s\n", button_name, state_not_pressed);          break;
+        case PRESSED:              LOG_I(TAG, "button = %s - status= %s\n", button_name, state_pressed);              break;
+        case LONG_PRESSED:         LOG_I(TAG, "button = %s - status= %s\n", button_name, state_long_pressed);         break;
     }
 #endif
 }
@@ -656,7 +659,7 @@ BLYNK_WRITE(BLYNK_CHANNEL_TIMER_TIME_INPUT)
 	TimerDuration.hours = t.getStartHour();
 	TimerDuration.minutes = t.getStartMinute();
 	TimerDuration.seconds = t.getStartSecond();
-	//Serial.printf("StartTime: %d:%d:%d\n\r", TimerDuration.hours, TimerDuration.minutes, TimerDuration.seconds);
+	LOG_D(TAG, "StartTime: %d:%d:%d\n\r", TimerDuration.hours, TimerDuration.minutes, TimerDuration.seconds);
 	TimeM->setTimerDuration(TimerDuration);
 }
 
@@ -669,13 +672,13 @@ BLYNK_WRITE(BLYNK_CHANNEL_TIMER_START_BUTTON)
 	if(param[0].asInt() == 1)
 	{
 		TimeM->startTimer();
-		Serial.println("Timer Started");
+		LOG_I(TAG, "Timer Started");
 		ClockS->switchMode(ClockState::TIMER_MODE);
 	}
 	else
 	{
 		TimeM->stopTimer();
-		Serial.println("Timer Stopped");
+		LOG_I(TAG, "Timer Stopped");
 		Blynk.syncVirtual(BLYNK_CHANNEL_TIMER_TIME_INPUT);
 		ClockUI->PoolClockDisplays->setGlobalBrightness(ClockS->clockBrightness);
 		ClockS->switchMode(ClockState::CLOCK_MODE);

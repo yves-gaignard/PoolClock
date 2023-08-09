@@ -16,6 +16,12 @@
  */
 
 /**
+ * \brief Definition of the default LOG Level chosen for the application
+ *        Possible levels : LOG_NONE/LOG_ERROR/LOG_WARNING/LOG_INFO/LOG_DEBUG/LOG_VERBOSE
+ */
+#define DEFAULT_LOG_LEVEL LOG_INFO      
+
+/**
  * \brief If you want to run the system in a minimal mode to test some basic functionality or
  * 		  debug something it could be useful to disable wifi functionality completely.
  */

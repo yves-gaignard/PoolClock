@@ -7,6 +7,8 @@
 #include <Arduino.h>
 #include <string>
 
+#define TAG "PoolClock_main"
+
 // Project name, version and author
 // ---------------------------------
 struct ProjectStructure {
@@ -17,6 +19,7 @@ struct ProjectStructure {
 const ProjectStructure Project {"Pool Clock", "1.0.0", "Yves Gaignard"};
 
 #include "Configuration.h"
+#include "LogManager.h"
 #include "DisplayManager.h"
 #include "ClockState.h"
 
@@ -132,53 +135,66 @@ void setup()
 	Serial.begin(115200);
 	delay(100);
 
-	Serial.println("Init Segment...");
+	// Set appropriate log level. The defaul DEFAULT_LOG_LEVEL is defined in Configuration.h file
+	Log.setTag("*"                   , DEFAULT_LOG_LEVEL);
+	Log.setTag("PoolClock_main"      , LOG_DEBUG);
+	Log.setTag("LCDManager"          , DEFAULT_LOG_LEVEL);
+	Log.setTag("LCDScreens"          , DEFAULT_LOG_LEVEL);
+	Log.setTag("LogManager"          , DEFAULT_LOG_LEVEL);
+	Log.setTag("Sensor_DS18B20"      , LOG_DEBUG);
+	Log.setTag("WebSrvManager"       , LOG_DEBUG);
+	Log.setTag("ClockState"          , DEFAULT_LOG_LEVEL);
+	Log.setTag("PoolClockCmd"        , DEFAULT_LOG_LEVEL);
+
+    //LOG_(TAG, "send %d %s \nResponse: %s", http_rc, Response_type, Response);
+
+    LOG_I(TAG, "Init Segment...");
 	PoolClockDisplays->InitSegments(0, WIFI_CONNECTING_COLOR, 50);
 
-	Serial.println("setHourSegmentColors ...");
+    LOG_I(TAG, "setHourSegmentColors...");
 	PoolClockDisplays->setHourSegmentColors(HOUR_COLOR);
-	Serial.println("setMinuteSegmentColors ...");
+    LOG_I(TAG, "setMinuteSegmentColors...");
 	PoolClockDisplays->setMinuteSegmentColors(MINUTE_COLOR);
-	Serial.println("setTemp1SegmentColors ...");
+    LOG_I(TAG, "T...");
 	PoolClockDisplays->setTemp1SegmentColors(TEMP1_COLOR);
-	Serial.println("setTemp2SegmentColors ...");
+    LOG_I(TAG, "setTemp2SegmentColors...");
 	PoolClockDisplays->setTemp2SegmentColors(TEMP2_COLOR);
-	Serial.println("setInternalLEDColor ...");
+    LOG_I(TAG, "setInternalLEDColor...");
 	PoolClockDisplays->setInternalLEDColor(INTERNAL_COLOR);
-	Serial.println("setDotLEDColor ...");
+    LOG_I(TAG, "setDotLEDColor...");
 	PoolClockDisplays->setDotLEDColor(SEPARATION_DOT_COLOR);
 
 	#if RUN_WITHOUT_WIFI == false
-	    Serial.println("wifi setup ...");
+    	LOG_I(TAG, "wifi setup...");
 		wifiSetup();
 	#endif
 	#if ENABLE_OTA_UPLOAD == true
-	    Serial.println("OTA setup ...");
+    	LOG_I(TAG, "OTA setup...");
 		//setupOTA();
 		WebSrvManager_setup(IS_WEB_SERIAL_ACTIVATED);
 	#endif
 
 	#if IS_BLYNK_ACTIVE == true
-	    Serial.println("Blynk configuration setup ...");
+    	LOG_I(TAG, "Blynk configuration setup...");
 		BlynkConfiguration->setup();
 	#endif
 
-	Serial.println("Fetching time from NTP server...");
+    LOG_I(TAG, "Fetching time from NTP server...");
 	if(timeM->init() == false)
 	{
-		Serial.printf("[E]: TimeManager failed to synchronize for the first time with the NTP server. Retrying in %d seconds\n", TIME_SYNC_INTERVAL);
+	    LOG_E(TAG, "TimeManager failed to synchronize for the first time with the NTP server. Retrying in %d seconds", TIME_SYNC_INTERVAL);
 	}
 	String sCurrentTime = timeM->getCurrentTimeString(TimeManager::HourMinSecFormat);
-	Serial.printf("Current time : %s\n", sCurrentTime);
+    LOG_I(TAG, "Current time : %s", sCurrentTime);
 	timeM->setTimerTickCallback(TimerTick);
 	timeM->setTimerDoneCallback(TimerDone);
 	timeM->setAlarmCallback(AlarmTriggered);
 
 	#if AIR_TEMP_SENSOR == true
-		Serial.println("initialize air temperature sensor ...");
+	    LOG_I(TAG, "initialize air temperature sensor...");
 		if (! am232x->init(I2C_SDA_PIN, I2C_SCL_PIN, AIR_TEMP_READ_FREQUENCY) ) 
 		{
-			Serial.println("[E] Initialization FAILED !!");
+		    LOG_E(TAG, "Air temperature sensor Initialization FAILED !!");
 		}
 	#endif
 
@@ -186,42 +202,44 @@ void setup()
   		DS18B20Sensors->init(dallasWaterTemp);
 
   		int DS18B20SensorsNumber = DS18B20Sensors->getDeviceCount();
-  		Serial.printf("%d DS18B20 sensors found\n",DS18B20SensorsNumber);
+	    LOG_I(TAG, "%d DS18B20 sensors found", DS18B20SensorsNumber);
 
 		for (int i = 0; i< DS18B20SensorsNumber; i++){
 			std::string deviceAddrStr = DS18B20Sensors->getDeviceAddress(i);
-			Serial.printf("sensor address [%d] : %s\n",i , deviceAddrStr.c_str() );
+		    LOG_I(TAG, "DS18B20 sensor address [%d] : %s", i, deviceAddrStr.c_str() );
 			if (deviceAddrStr == waterThermometerAddress) {
 				DS18B20Sensors->addDevice(waterThermometerName, waterThermometerAddress);
 			} else {
-				Serial.printf("Unknown temperature sensor found. Its address is: %s\n",deviceAddrStr.c_str());
+			    LOG_E(TAG, "Unknown DS18B20 temperature sensor found. Its address is: %s", deviceAddrStr.c_str() );
 			}
 		} 
 	#endif
 
 	#if PIR_SENSOR == true
-		Serial.println("PIR Motion Sensor Initialization ...");
+		LOG_I(TAG, "PIR Motion Sensor Initialization ...");
   		if (PIRSensor->init(PIR_SENSOR_PIN, PIR_SENSOR_DELAY))   // consider a delay of 5 minutes when the PIR sensor detects a motion
 		{
-		    Serial.println("Initialization OK");
+		    LOG_I(TAG, "PIR Motion Sensor Initialization OK");
 		}
 		else
 		{
-		    Serial.println("Initialization FAILED");
+		    LOG_E(TAG, "PIR Motion Sensor Initialization FAILED");
 		}
 	#endif
 
 	#if LCD_SCREEN == true
+		LOG_I(TAG, "LCDScreen initialization...");
 	    LCDScreen_Init(Project);
 	#endif
 
 	#if PUSH_BUTTONS == true
+		LOG_I(TAG, "Push button initialization...");
 		PCCmd->setup();
 	#endif
 
-	Serial.println("Displaying startup animation...");
+	LOG_I(TAG, "Displaying startup animation...");
 	startupAnimation();
-	Serial.println("Setup done...");
+	LOG_I(TAG, "Setup done...");
 }
 
 void loop()
@@ -260,7 +278,7 @@ void loop()
 		{
 			if (previousIsDetected != isDetected)
 			{
-				Serial.println("Motion is detected");
+				LOG_I(TAG, "Motion is detected");
 				previousIsDetected = isDetected;
 			}
 		}
@@ -268,7 +286,7 @@ void loop()
 		{
 			if (previousIsDetected != isDetected)
 			{
-				Serial.println("No Motion detected");
+				LOG_I(TAG, "No Motion detected");
 				previousIsDetected = isDetected;
 			}
 		}
@@ -304,9 +322,8 @@ void TimerDone()
 #if RUN_WITHOUT_WIFI == false
 	void WiFiStationDisconnected(WiFiEvent_t event, WiFiEventInfo_t info)
 	{
-		Serial.print("WiFi lost connection. Reason: ");
-		Serial.println(info.wifi_sta_disconnected.reason);
-		Serial.println("Trying to Reconnect");
+		LOG_E(TAG, "WiFi lost connection. Reason: %d", info.wifi_sta_disconnected.reason);
+		LOG_E(TAG, "Trying to Reconnect");
 		WiFi.disconnect();
 		WiFi.reconnect();
 	}
@@ -315,11 +332,11 @@ void TimerDone()
 	{
 		#if USE_ESPTOUCH_SMART_CONFIG == true
 			WiFi.reconnect(); //try to reconnect
-			Serial.println("Trying to reconnect to previous wifi network");
+			LOG_I(TAG, "Trying to reconnect to previous wifi network");
 		#else
 
 		  #if USE_STATIC_IP_CONFIG == true
-		    Serial.println("WIFI config ...");
+		    LOG_I(TAG, "WIFI config ...");
 		    // Configures static IP address
 		    IPAddress local_IP(MY_IP_ADDRESS);
 		    IPAddress gateway(MY_IP_GATEWAY_ADDRESS);
@@ -327,11 +344,11 @@ void TimerDone()
 		    IPAddress primaryDNS(PRIMARY_DNS);
 		    IPAddress secondaryDNS(SECONDARY_DNS);
   		    if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS)) {
-		      Serial.println("STA Failed to configure");
+		      LOG_I(TAG, "STA Failed to configure");
   		    }
 		  #endif
 		  
-		  Serial.println("WIFI begin ...");
+		  LOG_I(TAG, "WIFI begin ...");
 		  #if WIFI_WITHOUT_SCANNING_PHASE == true
 			WiFi.begin(WIFI_SSID, WIFI_PW, 6 );   // specify the WiFi channel number (6) when calling WiFi.begin(). This skips the WiFi scanning phase and saves about 4 seconds when connecting to the WiFi.
 		  #else
@@ -339,17 +356,17 @@ void TimerDone()
 		  #endif
 		#endif
 		if(WiFi.status() == WL_CONNECTED) 
-		  Serial.println("WIFI Connection successful");
+		  LOG_I(TAG, "WIFI Connection successful");
 		else
-		  Serial.println("WIFI Connection failed");
+		  LOG_E(TAG, "WIFI Connection failed");
 
-		Serial.println("setAllSegmentColors ...");
+		LOG_I(TAG, "setAllSegmentColors ...");
 		PoolClockDisplays->setAllSegmentColors(WIFI_CONNECTING_COLOR);
-		Serial.println("showLoadingAnimation ...");
+		LOG_I(TAG, "showLoadingAnimation ...");
 		PoolClockDisplays->showLoadingAnimation();
 		for (int i = 0; i < NUM_RETRIES; i++)
 		{
-			Serial.printf("Wifi connection retry number = %d\n", i);
+			LOG_I(TAG, "Wifi connection retry number = %d", i);
 			//Serial.print(".");
 			#if USE_ESPTOUCH_SMART_CONFIG == true
 				if(WiFi.begin() == WL_CONNECTED)
@@ -357,63 +374,63 @@ void TimerDone()
 				if(WiFi.status() == WL_CONNECTED)
 			#endif
 			{
-				Serial.println("Reconnect successful");
-        		Serial.println("setAllSegmentColors ...");
+				LOG_I(TAG, "Reconnect successful");
+        		LOG_I(TAG, "setAllSegmentColors ...");
 				PoolClockDisplays->setAllSegmentColors(WIFI_CONNECTION_SUCCESSFUL_COLOR);
 				break;
 			}
 				else {
-					Serial.println("WIFI Connection failed");
+					LOG_E(TAG, "WIFI Connection failed");
 				}
 			//delay(500);
 			PoolClockDisplays->delay(500);
-			Serial.println("WIFI Connection after Delay");
+			LOG_I(TAG, "WIFI Connection after Delay");
 		}
 
 		if(WiFi.status() != WL_CONNECTED)
 		{
 			#if USE_ESPTOUCH_SMART_CONFIG == true
-				Serial.println("Reconnect failed. starting smart config");
+				LOG_E(TAG, "Reconnect failed. starting smart config");
 				WiFi.mode(WIFI_AP_STA);
 				// start SmartConfig
 				WiFi.beginSmartConfig();
 
 				// Wait for SmartConfig packet from mobile
-				Serial.println("Waiting for SmartConfig.");
+				LOG_I(TAG, "Waiting for SmartConfig.");
 				PoolClockDisplays->setAllSegmentColors(WIFI_SMART_CONFIG_COLOR);
 				while (!WiFi.smartConfigDone())
 				{
-					Serial.print(".");
+					LOG_I(TAG, ".");
 					PoolClockDisplays->delay(500);
 				}
 				PoolClockDisplays->setAllSegmentColors(WIFI_CONNECTING_COLOR);
-				Serial.println("");
-				Serial.println("SmartConfig done.");
+				LOG_I(TAG, "");
+				LOG_I(TAG, "SmartConfig done.");
 
 				// Wait for WiFi to connect to AP
-				Serial.println("Waiting for WiFi");
+				LOG_I(TAG, "Waiting for WiFi");
 				while (WiFi.status() != WL_CONNECTED)
 				{
-					Serial.print(".");
+					LOG_I(TAG, ".");
 					PoolClockDisplays->setAllSegmentColors(WIFI_CONNECTION_SUCCESSFUL_COLOR);
 					PoolClockDisplays->delay(500);
 				}
-				Serial.println("WiFi Connected.");
-				Serial.print("IP Address: ");
-				Serial.println(WiFi.localIP());
+				LOG_I(TAG, "WiFi Connected.");
+				LOG_I(TAG, "IP Address: ");
+				LOG_I(TAG, WiFi.localIP());
 			#else
-				Serial.println("WIFI connection failed");
+				LOG_I(TAG, "WIFI connection failed");
 				PoolClockDisplays->setAllSegmentColors(ERROR_COLOR);
 			#endif
 			if(WiFi.status() != WL_CONNECTED)
 			{
-				Serial.println("WIFI connection failed. Aborting execution.");
+				LOG_E(TAG, "WIFI connection failed. Aborting execution.");
 				abort();
 			}
 		}
 		WiFi.onEvent(WiFiStationDisconnected, ARDUINO_EVENT_WIFI_STA_DISCONNECTED);
 		PoolClockDisplays->stopLoadingAnimation();
-		Serial.println("Waiting for loading animation to finish...");
+		LOG_I(TAG, "Waiting for loading animation to finish...");
 		PoolClockDisplays->waitForLoadingAnimationFinish();
 		PoolClockDisplays->turnAllSegmentsOff();
 	}
