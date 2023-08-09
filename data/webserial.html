@@ -99,7 +99,7 @@
             border-width: 0.5rem;
             border-radius: 1rem;
             background-color: #fff;
-            max-width: 60rem;
+            max-width: 120rem;                 /* initialy 60rem*/
             width: calc(100% - 1rem);
             font-size: medium;
             margin: 0 10px 0;
@@ -165,7 +165,7 @@
 
 <body>
     <div class="section main text-center">
-        <h1>WebSerial</h1>
+        <h1>PoolClock WebSerial</h1>
         <div class="pannel shadow grid gap-2">
             <div id="control-button">
                 <button class="rounded shadow" onclick="terminalClean()">
@@ -196,7 +196,7 @@
                     </svg>
                 </button>
             </div>
-            <textarea class="w-full rounded" title="record" id="record" cols="30" rows="10" disabled></textarea>
+            <textarea class="w-full rounded" title="record" id="record" cols="30" rows="50" disabled></textarea>  <!-- initialy rows="10" -->
             <div class="flex w-full grid gap-2" id="terminal">
                 <input type="text" name="cmd" id="command-text" class="grow rounded" /><button
                     class="grid justify-items-end rounded shadow" id="command-button">

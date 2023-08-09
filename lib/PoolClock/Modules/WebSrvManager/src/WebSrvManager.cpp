@@ -10,8 +10,6 @@
 
 // Standard library definitions
 #include <Arduino.h>
-//#include <vector>
-//#include <string>
 #include <AsyncElegantOTA.h>
 #include <LittleFS.h>
 //#include <ArduinoJson.h>          // JSON library
