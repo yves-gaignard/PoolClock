@@ -1,15 +1,14 @@
 /**
  * \file Sensor_HCSR501.cpp
  * \author Yves Gaignard
- * \brief Implementation of the class Sensor_HCSR501
- */
-
-#include "Sensor_HCSR501.h"
-
-/**
  * \brief The Sensor HC-SR501 is a Passive Infrared (PIR) sensor 
  *        The PIR sensor allows you to detect when a person or animal moves in or out of sensor range.
  */
+#define TAG "Sensor_HCSR501"
+
+#include "Sensor_HCSR501.h"
+#include "LogManager.h"
+
 Sensor_HCSR501* Sensor_HCSR501::_instance = nullptr;
 
 Sensor_HCSR501::Sensor_HCSR501()
@@ -60,7 +59,7 @@ bool Sensor_HCSR501::getPIRState()
         { 
             _last_state_true=millis(); 
             _pir_state = true;
-            //Serial.printf("Motion is detected at %u\n", _last_state_true);
+            LOG_D(TAG, "Motion is detected at %u", _last_state_true);
         }         
     } 
     else 

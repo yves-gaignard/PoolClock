@@ -10,8 +10,7 @@
 #include <Arduino.h>
 #include <LiquidCrystal_I2C.h>
 
-//#include "PM_Pool_Manager.h"
-#include <LCDManager.h>
+#include "LCDManager.h"
 
 LCDManager::LCDManager(uint8_t Device_Addr, uint8_t Cols, uint8_t Rows) {
   this->_initLCD (Device_Addr, Cols, Rows);

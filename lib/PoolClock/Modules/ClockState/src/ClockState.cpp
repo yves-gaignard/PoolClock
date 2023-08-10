@@ -1,7 +1,14 @@
+/**
+ * \file ClockState.cpp
+ * \author Yves Gaignard
+ * \brief Implementation of the ClockState class member functions
+ */
+
+#define TAG "ClockState"
+
 #include "ClockState.h"
 #include "LogManager.h"
 
-#define TAG "ClockState"
 ClockState* ClockState::instance = nullptr;
 
 ClockState::ClockState()

@@ -10,7 +10,14 @@
 #include <Arduino.h>
 #include <map>
 
-// Level of LOG possible:
+/**
+ * \brief Define if the serial print should also sent to the web server using WebSerial functionalities
+ */
+#define WEB_SERIAL_LITE true
+
+/**
+ * \brief Possible log lLevels
+ */
 static int const LOG_NONE    = -1;
 static int const LOG_ERROR   =  0;
 static int const LOG_WARNING =  1;

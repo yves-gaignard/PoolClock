@@ -3,8 +3,10 @@
  * \author Yves Gaignard
  * \brief Implementations of the member functions of the SevenSegment class
  */
+#define TAG "SevenSegment"
 
 #include "SevenSegment.h"
+#include "LogManager.h"
 /**
  * \brief defines the mapping of a number to the segments
  */
@@ -58,20 +60,19 @@ bool SevenSegment::isConfigComplete()
 
 uint8_t SevenSegment::getIndexOfSegment(SegmentPosition positionInDisplay)
 {
-	//DBG Serial.printf("SevenSegment::getIndexOfSegment .... positionInDisplay = %d\n", positionInDisplay);
+	LOG_D(TAG, "SevenSegment::getIndexOfSegment .... positionInDisplay = %d", positionInDisplay);
 	uint8_t segID = 0;
 	while(positionInDisplay >> segID != 0x01)
 	{
 		segID++;
-		//Serial.printf("segID = %d\n", segID);
+		LOG_D(TAG, "segID = %d\n", segID);
 		if(segID >= 7) // make sure we don't get stuck in an endless loop here
 		{
-			Serial.printf("segID = %d - ", segID);
-			Serial.println("Failed to find segment ID this should not be possible");
+			LOG_E(TAG, "segID = %d - Failed to find segment ID this should not be possible", segID);
 			return 6; // and that the value is still valid.
 		}
 	}
-	//DBG Serial.printf("SevenSegment::getIndexOfSegment .... segID = %d\n", segID);
+	LOG_D(TAG, "SevenSegment::getIndexOfSegment .... segID = %d\n", segID);
 	return segID;
 }
 
@@ -175,30 +176,30 @@ void SevenSegment::DisplayNumber(uint8_t value)
 
 void SevenSegment::FlashMiddleDot(uint8_t numDots)
 {
-	//DBG Serial.println("SevenSegment::FlashMiddleDot...1");
+	LOG_D(TAG, "SevenSegment::FlashMiddleDot...1");
 	if(DisplayMode != TWO_VERTICAL_SEGMENTS)
 	{
 		if(numDots == 2)
 		{
-	//DBG Serial.println("SevenSegment::FlashMiddleDot...2");
+			LOG_D(TAG, "SevenSegment::FlashMiddleDot...2");
 			AnimationHandler->startAnimation(Segments[getIndexOfSegment(MiddleTopSegment)], AnimationEffects::AnimateMiddleDotFlash, DOT_FLASH_SPEED);
 			AnimationHandler->startAnimation(Segments[getIndexOfSegment(MiddleBottomSegment)], AnimationEffects::AnimateMiddleDotFlash, DOT_FLASH_SPEED);
 		}
 		else
 		{
-	//DBG Serial.println("SevenSegment::FlashMiddleDot...3");
+			LOG_D(TAG, "SevenSegment::FlashMiddleDot...3");
 			AnimationHandler->startAnimation(Segments[getIndexOfSegment(CenterSegment)], AnimationEffects::AnimateMiddleDotFlash, DOT_FLASH_SPEED);
 		}
 	}
 	else
 	{
-	//DBG Serial.println("SevenSegment::FlashMiddleDot...4");
-	uint8_t indexOfSegment = getIndexOfSegment(RightBottomSegment);
-	//DBG Serial.printf("SevenSegment::FlashMiddleDot...getIndexOfSegment(RightBottomSegment)=%d\n",indexOfSegment);
-	//DBG Serial.printf("SevenSegment::FlashMiddleDot...Segments[getIndexOfSegment(RightBottomSegment)=%d\n",Segments[indexOfSegment]);
+		LOG_D(TAG, "SevenSegment::FlashMiddleDot...4");
+		uint8_t indexOfSegment = getIndexOfSegment(RightBottomSegment);
+		LOG_D(TAG, "SevenSegment::FlashMiddleDot...getIndexOfSegment(RightBottomSegment)=%d\n",indexOfSegment);
+		LOG_D(TAG, "SevenSegment::FlashMiddleDot...Segments[getIndexOfSegment(RightBottomSegment)=%d\n",Segments[indexOfSegment]);
 	
 		AnimationHandler->startAnimation(Segments[getIndexOfSegment(RightBottomSegment)], AnimationEffects::AnimateMiddleDotFlash, DOT_FLASH_SPEED);
-	//DBG Serial.printf("SevenSegment::FlashMiddleDot...getIndexOfSegment(RightTopSegment)=%d\n",getIndexOfSegment(RightTopSegment));
+		LOG_D(TAG, "SevenSegment::FlashMiddleDot...getIndexOfSegment(RightTopSegment)=%d\n",getIndexOfSegment(RightTopSegment));
 		AnimationHandler->startAnimation(Segments[getIndexOfSegment(RightTopSegment)], AnimationEffects::AnimateMiddleDotFlash, DOT_FLASH_SPEED);
 	}
 }

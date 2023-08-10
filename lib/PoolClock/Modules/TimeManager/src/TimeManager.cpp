@@ -3,8 +3,10 @@
  * \author Yves Gaignard
  * \brief Implementation of the TimeManager class member functions
  */
+#define TAG "TimeManager"
 
 #include "TimeManager.h"
+#include "LogManager.h"
 
 TimeManager* TimeManager::TimeManagerSingelton = nullptr;
 
@@ -108,7 +110,7 @@ bool TimeManager::synchronize()
 	struct tm timeinfo;
 	if(!getLocalTime(&timeinfo))
 	{
-		Serial.println("[E]: TimeManager failed to get time from NTP server");
+		LOG_E(TAG, "TimeManager failed to get time from NTP server");
 		return false;
 	}
 	currentTime.hours 	= timeinfo.tm_hour;

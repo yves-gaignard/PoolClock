@@ -1,10 +1,13 @@
 /**
  * \file Sensor_AM232X.cpp
  * \author Yves Gaignard
- * \brief Implementation of the class Sensor_AM232X
+ * \brief The Sensor_AM232X is responsible to mesure temperature and humidity 
+ *        This sensor uses I2C protocol to communicate
  */
+#define TAG "Sensor_AM232X"
 
 #include "Sensor_AM232X.h"
+#include "LogManager.h"
 
 /**
  * \brief The Sensor_AM232X is responsible to get temperature and humidity
@@ -51,27 +54,27 @@ bool Sensor_AM232X::init(int sda_pin, int scl_pin, uint32_t read_frequency)
     _scl_pin   = scl_pin;
     _read_frequency = read_frequency;
 
-    Serial.println("Initialization of AM232X Sensor");
+    LOG_I(TAG, "Initialization of AM232X Sensor");
 
     if (! _I2CDHT->begin(_sda_pin, _scl_pin, _frequency) ) 
     {
-        Serial.println("Cannot initialize I2C AM232X Sensor");
+        LOG_E(TAG, "Cannot initialize I2C AM232X Sensor");
         return false;
     } 
 
 	if (! _AM232X->begin() )
     {
-        Serial.println("Sensor AM232X not found");
+        LOG_E(TAG, "Sensor AM232X not found");
         return false;
     }
 
 	if (! _AM232X->wakeUp() )
     {
-        Serial.println("Sensor AM232X not connected");
+        LOG_E(TAG, "Sensor AM232X not connected");
         return false;
     }
     _is_init = true;
-    Serial.println("Initialization OK");
+    LOG_I(TAG, "Initialization OK");
     return true;
 }
 
@@ -96,11 +99,10 @@ void Sensor_AM232X::handle()
             switch (status)
             {
                 case AM232X_OK:
-                    //Serial.println("AM232X sensor read status = OK");
+                    LOG_D(TAG, "AM232X sensor read status = OK");
                 break;
                 default:
-                    Serial.print("AM232X sensor read status = ");
-                    Serial.println(status);
+                    LOG_E(TAG, "AM232X sensor read status = %d", status);
                 break;
             }
             float humidity = _AM232X->getHumidity();
@@ -108,10 +110,8 @@ void Sensor_AM232X::handle()
             float temperature = _AM232X->getTemperature();
             if (temperature != AM232X_INVALID_VALUE ) { _temperature = temperature; }
 
-            //Serial.print("AM232X sensor temperature = ");
-            //Serial.println(_temperature);
-            //Serial.print("AM232X sensor humidity = ");
-            //Serial.println(_humidity);
+            LOG_D(TAG, "AM232X sensor temperature = %4.2f", _temperature);
+            LOG_D(TAG, "AM232X sensor humidity    = %4.2f", _humidity);
 
             _last_read = millis();
         }

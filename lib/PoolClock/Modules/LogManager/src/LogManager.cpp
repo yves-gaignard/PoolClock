@@ -9,11 +9,11 @@
 #include <Arduino.h>
 #include <ESPPerfectTime.h>
 
-#ifdef WEB_SERIAL_LITE
-#include <WebSerialLite.h>
-#endif
-
 #include "LogManager.h"
+
+#ifdef WEB_SERIAL_LITE
+  #include <WebSerialLite.h>
+#endif
 
 // Default values
 static int const DEFAULT_LOG_LEVEL   = LOG_WARNING;

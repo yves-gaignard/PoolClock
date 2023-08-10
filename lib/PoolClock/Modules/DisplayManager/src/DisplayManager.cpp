@@ -4,8 +4,10 @@
  * \brief Implementation of the DisplayManager class member functions
  */
 
+#define TAG "DisplayManager"
 
 #include "DisplayManager.h"
+#include "LogManager.h"
 
 DisplayManager* DisplayManager::instance = nullptr;
 AnimatorLinkedList::LinkedList<DisplayManager::SegmentInstanceError>* DisplayManager::SegmentIndexErrorList = nullptr;
@@ -94,12 +96,12 @@ void DisplayManager::takeBrightnessMeasurement()
 		uint16_t val = digitalRead(LIGHT_SENSOR_PIN); 
 		if ( val == LOW)  // val is LOW means it is the complete brightness
 		{
-			//Serial.printf("Read brightness value = LOW ==> Complete Brightness\n\r");
+			LOG_D(TAG, "Read brightness value = LOW ==> Complete Brightness");
     		lightSensorMeasurements.add(LIGHT_SENSOR_MAX);
 		}
 		else // val is HIGH means it is the complete darkness
 		{
-			//Serial.printf("Read brightness value = HIGH ==> Complete Darkness\n\r");
+			LOG_D(TAG, "Read brightness value = HIGH ==> Complete Darkness");
     		lightSensorMeasurements.add(LIGHT_SENSOR_MIN);
 		}
 
@@ -138,7 +140,7 @@ void DisplayManager::takeBrightnessMeasurement()
 		if(lightSensorBrightnessNew != lightSensorBrightness)
 		{
 			lightSensorBrightness = lightSensorBrightnessNew;
-			Serial.printf("Light sensor brightness: %d\n\r", lightSensorBrightness);
+			LOG_I(TAG, "Light sensor brightness: %d", lightSensorBrightness);
 			setGlobalBrightness(currentLEDBrightness);
 		}
 
@@ -183,23 +185,23 @@ void DisplayManager::InitSegments(uint16_t indexOfFirstLed, CRGB initialColor, u
 		}
 	}
 	uint16_t currentLEDIndex = indexOfFirstLed;
-	//DBG Serial.printf("Segment Number = %d\n", NUM_SEGMENTS);
+	LOG_D(TAG, "Segment Number = %d", NUM_SEGMENTS);
 	for (uint16_t i = 0; i < NUM_SEGMENTS; i++)
 	{
 		ledsPerSegment = 0;
 		if      ( SegmentDisplaySize[diplayIndex[i]] == SevenSegment::LONG_SEGMENT )  {ledsPerSegment = NUM_LEDS_PER_LONG_SEGMENT  ;}
 		else if ( SegmentDisplaySize[diplayIndex[i]] == SevenSegment::SHORT_SEGMENT)  {ledsPerSegment = NUM_LEDS_PER_SHORT_SEGMENT ;}
 		else if ( SegmentDisplaySize[diplayIndex[i]] == SevenSegment::DOT_SEGMENT  )  {ledsPerSegment = NUM_LEDS_PER_DOT_SEGMENT   ;} 
-		//DBG Serial.printf("Segment = %d    Size = %d ", i, ledsPerSegment);
+		LOG_D(TAG, "Segment = %d    Size = %d ", i, ledsPerSegment);
 
 		allSegments[i] = new Segment(leds, currentLEDIndex, ledsPerSegment, SegmentDirections[i], initialColor);
-		//DBG Serial.printf("Segment addr= %d\n", allSegments[i]);
+		LOG_D(TAG, "Segment addr= %d\n", allSegments[i]);
 		if(Displays[diplayIndex[i]] == nullptr)
 		{
 			Displays[diplayIndex[i]] = new SevenSegment(SegmentDisplayModes[diplayIndex[i]], animationManager);
 		}
 		Displays[diplayIndex[i]]->add(allSegments[i], SegmentPositions[i]);
-		//DBG Serial.printf("Displays[%d]->add(%d, %d)\n", diplayIndex[i], allSegments[i], SegmentPositions[i]);
+		LOG_D(TAG, "Displays[%d]->add(%d, %d)\n", diplayIndex[i], allSegments[i], SegmentPositions[i]);
 		currentLEDIndex += ledsPerSegment;
 	}
 	//set the initial brightness to avoid jumps
@@ -299,7 +301,7 @@ void DisplayManager::handle()
 			LEDBrightnessCurrent = LEDBrightnessSmoothingStartPoint + lightSensorEasing->easeInOut(currentMillis - lastBrightnessChange);
 		}
 		FastLED.setBrightness(LEDBrightnessCurrent);
-		//Serial.printf("Set Sensor brightness in handle: %d\n\r", lightSensorBrightness);
+		LOG_D(TAG, "Set Sensor brightness in handle: %d", lightSensorBrightness);
 
 	}
 }
@@ -339,8 +341,7 @@ void DisplayManager::displayTemperature(float Temp1, float Humidity1, float Temp
 	}
 	Displays[LOWER_DIGIT_TEMP2_DISPLAY]->DisplayNumber(iTemp2 - firstTempDigit * 10); //get the last digit
 
-	//Serial.printf("PoolClockDisplays->displayTemperature... T indoor=%04.2f T water=%04.2f\n",Temp1, Temp2);
-	Serial.printf("PoolClockDisplays->displayTemperature... T-indoor=%02d H-indoor=%02d T-water=%02d H-water=%02d\n",iTemp1, iHumidity1, iTemp2, iHumidity2);
+	LOG_I(TAG, "PoolClockDisplays->displayTemperature... T-indoor=%02d H-indoor=%02d T-water=%02d H-water=%02d\n",iTemp1, iHumidity1, iTemp2, iHumidity2);
 
 }
 
@@ -418,12 +419,12 @@ void DisplayManager::updateProgress(uint32_t progress)
 
 void DisplayManager::delay(uint32_t timeInMs)
 {
-	//DBG unsigned long startMillis = millis();
-	//DBG Serial.printf("delayInMs   : %d\n", timeInMs);
-	//DBG Serial.printf("startMillis : %d\n", startMillis);
+	//unsigned long startMillis = millis();
+	//LOG_V(TAG, "delayInMs   : %d", timeInMs);
+	//LOG_V(TAG, "startMillis : %d", startMillis);
 	animationManager->delay(timeInMs);
-	//DBG unsigned long endMillis = millis();
-	//DBG Serial.printf("endMillis   : %d\n", endMillis);
+	//unsigned long endMillis = millis();
+	//LOG_V(TAG, "endMillis   : %d", endMillis);
 }
 
 void DisplayManager::setGlobalBrightness(uint8_t brightness, bool enableSmoothTransition)
@@ -432,7 +433,7 @@ void DisplayManager::setGlobalBrightness(uint8_t brightness, bool enableSmoothTr
 
 	#if ENABLE_LIGHT_SENSOR == true
 		LEDBrightnessSetPoint = constrain(brightness - lightSensorBrightness, 0, 255);
-		Serial.printf("Set the LED Brightness: %d\n\r", LEDBrightnessSetPoint);
+		LOG_I(TAG, "Set the LED Brightness: %d", LEDBrightnessSetPoint);
 	#else
 		LEDBrightnessSetPoint = brightness;
 	#endif
@@ -445,7 +446,7 @@ void DisplayManager::setGlobalBrightness(uint8_t brightness, bool enableSmoothTr
 	{
 		LEDBrightnessSmoothingStartPoint = LEDBrightnessCurrent = LEDBrightnessSetPoint;
 		FastLED.setBrightness(LEDBrightnessCurrent);
-		Serial.printf("Get Global brightness: %d\n\r", lightSensorBrightness);
+		LOG_I(TAG, "Get Global brightness: %d", lightSensorBrightness);
 
 	}
 }
@@ -453,9 +454,9 @@ void DisplayManager::setGlobalBrightness(uint8_t brightness, bool enableSmoothTr
 void DisplayManager::flashSeparationDot(uint8_t numDots)
 {
 	#if DISPLAY_FOR_SEPARATION_DOT > -1
-		//DBG Serial.printf("Displays[%d]->FlashMiddleDot(%d) ... Before\n", DISPLAY_FOR_SEPARATION_DOT,numDots);
+		LOG_D(TAG, "Displays[%d]->FlashMiddleDot(%d) ... Before", DISPLAY_FOR_SEPARATION_DOT,numDots);
 		Displays[DISPLAY_FOR_SEPARATION_DOT]->FlashMiddleDot(numDots);
-		//DBG Serial.printf("Displays[%d]->FlashMiddleDot(%d) ... After\n", DISPLAY_FOR_SEPARATION_DOT,numDots);
+		LOG_D(TAG, "Displays[%d]->FlashMiddleDot(%d) ... After", DISPLAY_FOR_SEPARATION_DOT,numDots);
 	#endif
 }
 
@@ -493,7 +494,7 @@ int16_t DisplayManager::getGlobalSegmentIndex(SegmentPositions_t segmentPosition
 	}
 	else // once Serial was initialized print errors right away to not forget about them
 	{
-		Serial.printf("[W] Segment not valid; Position: %d; Display: %d\n\r", segmentPosition, Display);
+		LOG_W(TAG, "Segment not valid; Position: %d; Display: %d", segmentPosition, Display);
 	}
 	return NO_SEGMENTS;
 }
@@ -505,7 +506,7 @@ void DisplayManager::printAnimationInitErrors()
 		while(SegmentIndexErrorList->size() > 0)
 		{
 			SegmentInstanceError currentError =	SegmentIndexErrorList->pop();
-			Serial.printf("[W] Segment not valid; Position: %d; Display: %d\n\r", currentError.segmentPosition, currentError.Display);
+			LOG_W(TAG, "Segment not valid; Position: %d; Display: %d\n\r", currentError.segmentPosition, currentError.Display);
 		}
 	}
 }

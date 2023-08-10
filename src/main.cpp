@@ -244,12 +244,12 @@ void setup()
 
 void loop()
 {
-	//DBG Serial.println("Begin of Main Loop...");
+	LOG_V(TAG, "Begin of Main Loop...");
 	#if ENABLE_OTA_UPLOAD == true
 	    //DBG Serial.println("ArduinoOTA.handle()...");
 		//ArduinoOTA.handle();
 	#endif
-	//DBG Serial.println("states->handleStates()...");
+	LOG_V(TAG, "states->handleStates()...");
 	states->handleStates(); //updates display states, switches between modes etc.
 
 	// Test code:
@@ -258,9 +258,9 @@ void loop()
 	// 	PoolClockDisplays->test();
 	// 	last = millis();
 	// }
-	//DBG Serial.println("PoolClockDisplays->handle()...");
+	LOG_V(TAG, "PoolClockDisplays->handle()...");
     PoolClockDisplays->handle();
-	//DBG Serial.println("timeM->handle()...");
+	LOG_V(TAG, "timeM->handle()...");
 	timeM->handle();
 
 	#if AIR_TEMP_SENSOR == true
@@ -367,7 +367,6 @@ void TimerDone()
 		for (int i = 0; i < NUM_RETRIES; i++)
 		{
 			LOG_I(TAG, "Wifi connection retry number = %d", i);
-			//Serial.print(".");
 			#if USE_ESPTOUCH_SMART_CONFIG == true
 				if(WiFi.begin() == WL_CONNECTED)
 			#else

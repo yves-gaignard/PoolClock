@@ -1,14 +1,8 @@
 /**
  * \file Sensor_DS18B20.cpp
  * \author Yves Gaignard
- * \brief Implementation of the class Sensor_DS18B20
- */
-
-#include "Sensor_DS18B20.h"
-
-/**
  * \brief The Sensor_DS18B20 is responsible to get temperature
- *        This sensor is using one-wire protocol to communicate
+ *        This sensor uses one-wire protocol to communicate
  */
 
 #define TAG "Sensor_DS18B20"
@@ -16,8 +10,9 @@
 // Standard library definitions
 #include <Arduino.h>
 
-#include <LogManager.h>
-#include <Utilities.h>
+#include "Sensor_DS18B20.h"
+#include "LogManager.h"
+#include "Utilities.h"
 
 Sensor_DS18B20* Sensor_DS18B20::_instance = nullptr;
 
