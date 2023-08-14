@@ -16,8 +16,8 @@
 
 PoolClockCmd* PoolClockCmd::instance = nullptr;
 PoolClockCmd* ClockUI = PoolClockCmd::getInstance();
-ClockState*  ClockS  = ClockState::getInstance();
-TimeManager* TimeM   = TimeManager::getInstance();
+ClockState*   ClockS  = ClockState::getInstance();
+TimeManager*  TimeM   = TimeManager::getInstance();
 
 /**
  * \brief Construct a new Blynk Config object. Also poulate all variables of the class with meaningful values
@@ -190,7 +190,6 @@ void PoolClockCmd::setup()
 /**
  * \brief Callback to manage Mode button action in case of short press
  */
-
 void PoolClockCmd::Mode_onPressed() {
     LOG_I(TAG, "Mode button has been pressed!");
     _Mode_button_state = PRESSED;
@@ -452,9 +451,9 @@ void PoolClockCmd::print_button_state(const char* button_name, Button_State_enum
 #if DEBUG == false
     switch(button_state)
     {
-        case NOT_PRESSED:          LOG_V(TAG, "button = %s   status= %s\n", button_name, state_not_pressed);          break;
-        case PRESSED:              LOG_I(TAG, "button = %s - status= %s\n", button_name, state_pressed);              break;
-        case LONG_PRESSED:         LOG_I(TAG, "button = %s - status= %s\n", button_name, state_long_pressed);         break;
+        case NOT_PRESSED:          LOG_V(TAG, "button = %s   status= %s", button_name, state_not_pressed);          break;
+        case PRESSED:              LOG_I(TAG, "button = %s - status= %s", button_name, state_pressed);              break;
+        case LONG_PRESSED:         LOG_I(TAG, "button = %s - status= %s", button_name, state_long_pressed);         break;
     }
 #endif
 }

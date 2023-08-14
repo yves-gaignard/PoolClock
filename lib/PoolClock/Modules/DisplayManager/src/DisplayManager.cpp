@@ -195,13 +195,13 @@ void DisplayManager::InitSegments(uint16_t indexOfFirstLed, CRGB initialColor, u
 		LOG_D(TAG, "Segment = %d    Size = %d ", i, ledsPerSegment);
 
 		allSegments[i] = new Segment(leds, currentLEDIndex, ledsPerSegment, SegmentDirections[i], initialColor);
-		LOG_D(TAG, "Segment addr= %d\n", allSegments[i]);
+		LOG_D(TAG, "Segment addr= %d", allSegments[i]);
 		if(Displays[diplayIndex[i]] == nullptr)
 		{
 			Displays[diplayIndex[i]] = new SevenSegment(SegmentDisplayModes[diplayIndex[i]], animationManager);
 		}
 		Displays[diplayIndex[i]]->add(allSegments[i], SegmentPositions[i]);
-		LOG_D(TAG, "Displays[%d]->add(%d, %d)\n", diplayIndex[i], allSegments[i], SegmentPositions[i]);
+		LOG_D(TAG, "Displays[%d]->add(%d, %d)", diplayIndex[i], allSegments[i], SegmentPositions[i]);
 		currentLEDIndex += ledsPerSegment;
 	}
 	//set the initial brightness to avoid jumps
@@ -341,7 +341,7 @@ void DisplayManager::displayTemperature(float Temp1, float Humidity1, float Temp
 	}
 	Displays[LOWER_DIGIT_TEMP2_DISPLAY]->DisplayNumber(iTemp2 - firstTempDigit * 10); //get the last digit
 
-	LOG_I(TAG, "PoolClockDisplays->displayTemperature... T-indoor=%02d H-indoor=%02d T-water=%02d H-water=%02d\n",iTemp1, iHumidity1, iTemp2, iHumidity2);
+	LOG_I(TAG, "PoolClockDisplays->displayTemperature... T-indoor=%02d H-indoor=%02d T-water=%02d H-water=%02",iTemp1, iHumidity1, iTemp2, iHumidity2);
 
 }
 
@@ -506,7 +506,7 @@ void DisplayManager::printAnimationInitErrors()
 		while(SegmentIndexErrorList->size() > 0)
 		{
 			SegmentInstanceError currentError =	SegmentIndexErrorList->pop();
-			LOG_W(TAG, "Segment not valid; Position: %d; Display: %d\n\r", currentError.segmentPosition, currentError.Display);
+			LOG_W(TAG, "Segment not valid; Position: %d; Display: %d", currentError.segmentPosition, currentError.Display);
 		}
 	}
 }

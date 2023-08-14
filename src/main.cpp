@@ -137,14 +137,20 @@ void setup()
 
 	// Set appropriate log level. The defaul DEFAULT_LOG_LEVEL is defined in Configuration.h file
 	Log.setTag("*"                   , DEFAULT_LOG_LEVEL);
-	Log.setTag("PoolClock_main"      , LOG_DEBUG);
+	Log.setTag("BuzzerManager"       , DEFAULT_LOG_LEVEL);
+	Log.setTag("ClockState"          , DEFAULT_LOG_LEVEL);
+	Log.setTag("DisplayManager"      , DEFAULT_LOG_LEVEL);
 	Log.setTag("LCDManager"          , DEFAULT_LOG_LEVEL);
 	Log.setTag("LCDScreens"          , DEFAULT_LOG_LEVEL);
 	Log.setTag("LogManager"          , DEFAULT_LOG_LEVEL);
+	Log.setTag("PoolClockCmd"        , LOG_DEBUG);
+	Log.setTag("PoolClock_main"      , LOG_DEBUG);
+	Log.setTag("Sensor_AM232X"       , DEFAULT_LOG_LEVEL);
 	Log.setTag("Sensor_DS18B20"      , LOG_DEBUG);
+	Log.setTag("Sensor_HCSR501"      , DEFAULT_LOG_LEVEL);
+	Log.setTag("SevenSegment"        , DEFAULT_LOG_LEVEL);
+	Log.setTag("TimeManager"         , DEFAULT_LOG_LEVEL);
 	Log.setTag("WebSrvManager"       , LOG_DEBUG);
-	Log.setTag("ClockState"          , DEFAULT_LOG_LEVEL);
-	Log.setTag("PoolClockCmd"        , DEFAULT_LOG_LEVEL);
 
     //LOG_(TAG, "send %d %s \nResponse: %s", http_rc, Response_type, Response);
 
