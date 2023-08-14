@@ -452,7 +452,7 @@ enum DisplayIDs {
 	/**
 	 * \brief ADC pin to which the PIR sensor is connected to
 	 */
-	#define PIR_SENSOR_PIN			25
+	#define PIR_SENSOR_PIN			5
 	#define PIR_SENSOR_DELAY        5*60*1000ul
 #endif
 
@@ -475,6 +475,23 @@ enum DisplayIDs {
 	#define BUTTON_PLAY_PIN			27
 	#define BUTTON_MINUS_PIN		26
 #endif
+
+/***************************
+*
+* Buzzer settings
+*
+*****************************/
+/**
+ * \brief Buzzer definition
+ */
+#define USE_BUZZER		true //TODOPROD true
+#if USE_BUZZER == true
+/**
+	 * \brief Buzzer pin is connected to
+	 */
+	#define BUZZER_PIN				17
+#endif
+
 
 /***************************
 *

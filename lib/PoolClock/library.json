@@ -18,6 +18,7 @@
 		],
 		"flags": [
             "-I Modules/Animator/inc",
+            "-I Modules/BuzzerManager/inc",
             "-I Modules/ClockState/inc",
             "-I Modules/Command/inc",
             "-I Modules/DisplayManager/inc",
