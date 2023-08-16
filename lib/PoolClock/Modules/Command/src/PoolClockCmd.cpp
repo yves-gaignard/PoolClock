@@ -163,7 +163,18 @@ void PoolClockCmd::setup()
 	
 	// Default current state
     _current_state = CLOCK; 
-    _last_state    = CLOCK; 
+    _last_state    = CLOCK;
+
+	// Default Timer Duration
+	_TimerDuration.hours   = 0;
+	_TimerDuration.minutes = 0;
+	_TimerDuration.seconds = 0;
+
+	// Default Timer State
+	_TimerState = STOPPED;
+
+	// Default Timer Digit
+	_CurrentTimerDigit = HOUR_DIGIT;
 
     // callback declaration
     _ModeButton-> onPressed(PoolClockCmd::Mode_onPressed);
@@ -277,8 +288,12 @@ void PoolClockCmd::state_machine_run(Transitions_enum transition)
             ChgModeToSetTimer();
             _current_state = SET_TIMER;
         }
-        else if(transition == PLAY || transition == LONG_PLAY){
+        else if(transition == PLAY){
             StartPauseResumeTimer();
+            _current_state = TIMER;
+        }
+        else if(transition == LONG_PLAY){
+            CancelTimer();
             _current_state = TIMER;
         }
         else{
@@ -348,65 +363,151 @@ void PoolClockCmd::NOPE()
 void PoolClockCmd::ChgModeToTimer()
 {
     LOG_I(TAG, "Action: Change Mode To Timer");
-    //delay(1000);
+	ClockUI->PoolClockDisplays->setGlobalBrightness(ClockS->clockBrightness);
+	ClockS->switchMode(ClockState::TIMER_MODE);
+	_TimerState = STOPPED;
+	//TODO add LCD screen display change
 }
 
 void PoolClockCmd::ChgModeToSetTimer()
 {
     LOG_I(TAG, "Action: Change Mode To Set Timer");
-    //delay(1000);
+	ClockUI->PoolClockDisplays->setGlobalBrightness(ClockS->clockBrightness);
+	ClockS->switchMode(ClockState::TIMER_MODE);
+	//TODO add LCD screen display change
 }
 
 void PoolClockCmd::ChgModeToClock()
 {
     LOG_I(TAG, "Action: Change Mode To Clock");
-    //delay(1000);
+	ClockUI->PoolClockDisplays->setGlobalBrightness(ClockS->clockBrightness);
+	ClockS->switchMode(ClockState::CLOCK_MODE);
+	//TODO add LCD screen display change
 }
 
 void PoolClockCmd::StartPauseResumeTimer()
 {
     LOG_I(TAG, "Action: Start Pause Resume Timer");
+	if (_TimerState == STOPPED)
+	{
+		TimeM->startTimer();
+		LOG_I(TAG, "Timer Started");
+		_TimerState = STARTED;
+	}
+	else if (_TimerState == STARTED)
+	{
+		TimeM->stopTimer();
+		LOG_I(TAG, "Timer Paused");
+		_TimerState = PAUSED;
+	}
+	else if (_TimerState == PAUSED)
+	{
+		TimeM->startTimer();
+		LOG_I(TAG, "Timer Resumed");
+		_TimerState = STARTED;
+	}
+	//TODO add LCD screen display change
+}
+
+void PoolClockCmd::CancelTimer()
+{
+    LOG_I(TAG, "Action: Cancel Timer");
     //delay(500);
+	if (_TimerState == STARTED)
+	{
+		TimeM->stopTimer();
+		LOG_I(TAG, "Timer Stopped");
+	}
+	_TimerState = STOPPED;
+	//TODO add LCD screen display change
 }
 
 void PoolClockCmd::CancelSetTimer()
 {
     LOG_I(TAG, "Action: Cancel Set Timer");
-    //delay(500);
+	//TODO add LCD screen display change
 }
 
 void PoolClockCmd::ValidateSetTimer()
 {
     LOG_I(TAG, "Action: Validate Set Timer");
-    //delay(500);
+	LOG_D(TAG, "Timer Duration: %d:%d:%d", _TimerDuration.hours, _TimerDuration.minutes, _TimerDuration.seconds);
+	TimeM->setTimerDuration(_TimerDuration);
+	//TODO add LCD screen display change
 }
 
 void PoolClockCmd::MoveNextDigit()
 {
-    LOG_I(TAG, "Action: Move Next Digit");
     //delay(200);
+	if (_CurrentTimerDigit == HOUR_DIGIT) 
+	{
+		_CurrentTimerDigit = MINUTE_DIGIT;
+	    LOG_I(TAG, "Action: Move Digit to MINUTES");
+	}
+	else
+	{
+		_CurrentTimerDigit = HOUR_DIGIT;
+	    LOG_I(TAG, "Action: Move Digit to HOURS");
+	}
+	//TODO add LCD screen display change
 }
 
 void PoolClockCmd::IncrementDigit()
 {
     LOG_I(TAG, "Action: Increment Digit");
     //delay(200);
+	if (_CurrentTimerDigit == HOUR_DIGIT)  {
+		_TimerDuration.hours++;
+		if (_TimerDuration.hours >= 24) _TimerDuration.hours = 0;
+	}
+	else {
+		_TimerDuration.minutes++;
+		if (_TimerDuration.minutes >= 60) _TimerDuration.minutes = 0;
+	}
+	//TODO add LCD screen display change
 }
 
 void PoolClockCmd::IncrementQuicklyDigit()
 {
     LOG_I(TAG, "Action: Increment Quickly Digit");
+		if (_CurrentTimerDigit == HOUR_DIGIT)  {
+		_TimerDuration.hours = _TimerDuration.hours + 10;
+		if (_TimerDuration.hours >= 24) _TimerDuration.hours = 0;
+	}
+	else {
+		_TimerDuration.minutes = _TimerDuration.minutes + 10;
+		if (_TimerDuration.minutes >= 60) _TimerDuration.minutes = 0;
+	}
+	//TODO add LCD screen display change
 }
 
 void PoolClockCmd::DecrementDigit()
 {
     LOG_I(TAG, "Action: Decrement Digit");
     //delay(200);
+	if (_CurrentTimerDigit == HOUR_DIGIT)  {
+		_TimerDuration.hours--;
+		if (_TimerDuration.hours < 0) _TimerDuration.hours = 23;
+	}
+	else {
+		_TimerDuration.minutes--;
+		if (_TimerDuration.minutes < 0) _TimerDuration.minutes = 59;
+	}
+	//TODO add LCD screen display change
 }
 
 void PoolClockCmd::DecrementQuicklyDigit()
 {
     LOG_I(TAG, "Action: Decrement Quickly Digit");
+	if (_CurrentTimerDigit == HOUR_DIGIT)  {
+		_TimerDuration.hours = _TimerDuration.hours -10;
+		if (_TimerDuration.hours < 0) _TimerDuration.hours = 23;
+	}
+	else {
+		_TimerDuration.minutes = _TimerDuration.minutes -10;
+		if (_TimerDuration.minutes < 0) _TimerDuration.minutes = 59;
+	}
+	//TODO add LCD screen display change
 }
 
 Transitions_enum PoolClockCmd::read_buttons()

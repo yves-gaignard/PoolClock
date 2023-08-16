@@ -53,7 +53,14 @@ enum Transitions_enum {NONE, MODE, LONG_MODE, PLAY, LONG_PLAY, PLUS, LONG_PLUS, 
 * \brief Enumeration of states that a push nutton may have
 */
 enum Button_State_enum {NOT_PRESSED, PRESSED, LONG_PRESSED, RELEASED};
-
+/**
+* \brief Enumeration of timer digits
+*/
+enum Timer_Digit_enum {HOUR_DIGIT, MINUTE_DIGIT};
+/**
+* \brief Enumeration of timer states
+*/
+enum Timer_State_enum {STOPPED, STARTED, PAUSED};
 /**
 * \brief Time in ms during a push button needs to be pressed to consider it is a LONG press
 */
@@ -113,7 +120,13 @@ public:
 	State_enum _current_state;
 	State_enum _last_state;
 
-
+	/**
+	 * @brief Timer variables
+	 * 
+	 */
+	TimeManager::TimeInfo _TimerDuration;
+	Timer_Digit_enum _CurrentTimerDigit;
+	Timer_State_enum _TimerState;
 
 
 
@@ -183,6 +196,7 @@ public:
 	void ChgModeToSetTimer();
 	void ChgModeToClock();
 	void StartPauseResumeTimer();
+	void CancelTimer();
 	void CancelSetTimer();
 	void ValidateSetTimer();
 	void MoveNextDigit();
