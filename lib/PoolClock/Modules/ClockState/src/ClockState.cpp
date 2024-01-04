@@ -112,7 +112,7 @@ void ClockState::handleStates()
 					}
 				}
 			#endif
-			LOG_I(TAG, "PoolClockDisplays->displayTime... %02d:%02d:%02d",currentTime.hours, currentTime.minutes, currentTime.seconds);
+			LOG_D(TAG, "PoolClockDisplays->displayTime... %02d:%02d:%02d",currentTime.hours, currentTime.minutes, currentTime.seconds);
 			PoolClockDisplays->displayTime(currentTime.hours, currentTime.minutes);
 			#if DISPLAY_FOR_SEPARATION_DOT > -1
 				if(numDots > 0)

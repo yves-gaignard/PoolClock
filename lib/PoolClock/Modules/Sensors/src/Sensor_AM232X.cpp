@@ -26,7 +26,7 @@ Sensor_AM232X::Sensor_AM232X()
 	_humidity   = AM232X_HUMIDITY_OUT_OF_RANGE;
     _read_status= -1;
     _last_read  = 0;
-    _read_frequency = 500;
+    _read_frequency = 1000;  // in ms
 
 
 	_I2CDHT = new TwoWire(1);   //  I2C bus
@@ -75,6 +75,8 @@ bool Sensor_AM232X::init(int sda_pin, int scl_pin, uint32_t read_frequency)
     }
     _is_init = true;
     LOG_I(TAG, "Initialization OK");
+    LOG_I(TAG, "Sensor AM232X SDA PIN = %d",_sda_pin);
+    LOG_I(TAG, "Sensor AM232X SCL PIN = %d",_scl_pin);
     return true;
 }
 
@@ -99,11 +101,11 @@ void Sensor_AM232X::handle()
             switch (status)
             {
                 case AM232X_OK:
-                    LOG_D(TAG, "AM232X sensor read status = OK");
-                break;
+                  LOG_D(TAG, "AM232X sensor read status = OK");
+                  break;
                 default:
-                    LOG_E(TAG, "AM232X sensor read status = %d", status);
-                break;
+                  LOG_E(TAG, "AM232X sensor read status = %d", status);
+                  break;
             }
             float humidity = _AM232X->getHumidity();
             if (humidity != AM232X_INVALID_VALUE ) { _humidity = humidity; }

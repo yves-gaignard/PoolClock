@@ -32,6 +32,8 @@ void WebSrvManager_recvMsg(uint8_t *data, size_t len);
 // Web server setup and start
 void WebSrvManager_setup(boolean isWebSerial) {
 
+  LOG_I(TAG, "Start Web Server Manager setup....");
+
   //----------------------------------------------------FileSys
   if(!FileSys.begin()) {
       LOG_E(TAG, "Cannot open LittleFS....");
@@ -63,6 +65,7 @@ void WebSrvManager_setup(boolean isWebSerial) {
   });
   
   if (isWebSerial) {
+    LOG_I(TAG, "Start Web Serial ....");
     // WebSerial is accessible at "<IP Address>/webserial" in browser
     WebSerial.begin(&OTAServer);
     // Attach Message Callback

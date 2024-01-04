@@ -1,0 +1,27 @@
+
+
+- Gestion du PIR 
+    on veut que les LEDs et le LCD s'eteignent au bout d'un temps d'inactivité sauf cas du Timer
+
+- Gestion du LCD
+    Faire les LCDScreens correspondants à aux modes CLOCK, TIMER et Set_Timer
+    Gestion de l'economie 
+
+- Gestion des LEDs
+    Gestion de la luminosité via le Light sensor, le LCD et le Web
+    Gestion des couleurs via le Web
+
+- Web 
+    Activation du panneau a distance
+    Récupération des données : heure ou timer, temperatures
+    Activation du timer à distance
+    Verifier le fonctionnement d'OTA
+    Verifier le fonctionnement du WebSerial
+
+- Gestion de la FSM
+    Verifier tous les etats
+    Gérer chaque action
+    
+
+
+

@@ -55,7 +55,8 @@ bool Sensor_HCSR501::getPIRState()
  
     if (val == HIGH)	// check if the input is HIGH
     {   
-        if (! _pir_state) 
+        LOG_D(TAG, "Val = HIGH");
+        if (_pir_state == false) 
         { 
             _last_state_true=millis(); 
             _pir_state = true;
@@ -64,7 +65,8 @@ bool Sensor_HCSR501::getPIRState()
     } 
     else 
     {
-        if (_pir_state) 
+        LOG_D(TAG, "Val = LOW");
+        if (_pir_state == true) 
         { 
             _last_state_false=millis(); 
             _pir_state = false;

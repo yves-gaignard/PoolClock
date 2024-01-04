@@ -145,14 +145,19 @@ void setup()
 	Log.setTag("LogManager"          , DEFAULT_LOG_LEVEL);
 	Log.setTag("PoolClockCmd"        , LOG_DEBUG);
 	Log.setTag("PoolClock_main"      , LOG_DEBUG);
-	Log.setTag("Sensor_AM232X"       , DEFAULT_LOG_LEVEL);
+	Log.setTag("Sensor_AM232X"       , LOG_DEBUG);
 	Log.setTag("Sensor_DS18B20"      , DEFAULT_LOG_LEVEL);
-	Log.setTag("Sensor_HCSR501"      , DEFAULT_LOG_LEVEL);
+	Log.setTag("Sensor_HCSR501"      , LOG_DEBUG);
 	Log.setTag("SevenSegment"        , DEFAULT_LOG_LEVEL);
 	Log.setTag("TimeManager"         , DEFAULT_LOG_LEVEL);
 	Log.setTag("WebSrvManager"       , LOG_DEBUG);
 
     //LOG_(TAG, "send %d %s \nResponse: %s", http_rc, Response_type, Response);
+
+	#if LCD_SCREEN == true
+		LOG_I(TAG, "LCDScreen initialization...");
+	    LCDScreen_Init(Project);
+	#endif
 
     LOG_I(TAG, "Init Segment...");
 	PoolClockDisplays->InitSegments(0, WIFI_CONNECTING_COLOR, 50);
@@ -231,11 +236,6 @@ void setup()
 		{
 		    LOG_E(TAG, "PIR Motion Sensor Initialization FAILED");
 		}
-	#endif
-
-	#if LCD_SCREEN == true
-		LOG_I(TAG, "LCDScreen initialization...");
-	    LCDScreen_Init(Project);
 	#endif
 
 	#if PUSH_BUTTONS == true
@@ -350,10 +350,12 @@ void TimerDone()
 		    IPAddress primaryDNS(PRIMARY_DNS);
 		    IPAddress secondaryDNS(SECONDARY_DNS);
   		    if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS)) {
-		      LOG_I(TAG, "STA Failed to configure");
+		      LOG_E(TAG, "STA Failed to configure");
   		    }
 		  #endif
 		  
+		  LOG_I(TAG, "WIFI Mode ...");
+		  WiFi.mode(WIFI_STA);
 		  LOG_I(TAG, "WIFI begin ...");
 		  #if WIFI_WITHOUT_SCANNING_PHASE == true
 			WiFi.begin(WIFI_SSID, WIFI_PW, 6 );   // specify the WiFi channel number (6) when calling WiFi.begin(). This skips the WiFi scanning phase and saves about 4 seconds when connecting to the WiFi.
@@ -361,10 +363,14 @@ void TimerDone()
 			WiFi.begin(WIFI_SSID, WIFI_PW);
 		  #endif
 		#endif
-		if(WiFi.status() == WL_CONNECTED) 
+		if(WiFi.status() == WL_CONNECTED)
+		{
 		  LOG_I(TAG, "WIFI Connection successful");
+		  LOG_I(TAG, "Local IP =%S",WiFi.localIP().toString());			
+		}
 		else
 		  LOG_E(TAG, "WIFI Connection failed");
+		
 
 		LOG_I(TAG, "setAllSegmentColors ...");
 		PoolClockDisplays->setAllSegmentColors(WIFI_CONNECTING_COLOR);
@@ -380,6 +386,7 @@ void TimerDone()
 			#endif
 			{
 				LOG_I(TAG, "Reconnect successful");
+	            LOG_I(TAG, "Local IP =%S",WiFi.localIP().toString());			
         		LOG_I(TAG, "setAllSegmentColors ...");
 				PoolClockDisplays->setAllSegmentColors(WIFI_CONNECTION_SUCCESSFUL_COLOR);
 				break;

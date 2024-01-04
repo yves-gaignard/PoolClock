@@ -341,7 +341,7 @@ void DisplayManager::displayTemperature(float Temp1, float Humidity1, float Temp
 	}
 	Displays[LOWER_DIGIT_TEMP2_DISPLAY]->DisplayNumber(iTemp2 - firstTempDigit * 10); //get the last digit
 
-	LOG_I(TAG, "PoolClockDisplays->displayTemperature... T-indoor=%02d H-indoor=%02d T-water=%02d H-water=%02",iTemp1, iHumidity1, iTemp2, iHumidity2);
+	LOG_D(TAG, "PoolClockDisplays->displayTemperature... T-indoor=%02d H-indoor=%02d T-water=%02d H-water=%02",iTemp1, iHumidity1, iTemp2, iHumidity2);
 
 }
 

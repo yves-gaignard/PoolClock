@@ -76,7 +76,7 @@
          *        in the \ref platformio.ini file
 		 */
 		#define OTA_UPDATE_HOST_NAME	"PoolClock"
-		#define OTA_UPDATE_PORT         3232  
+		#define OTA_UPDATE_PORT         80  
 		#define IS_WEB_SERIAL_ACTIVATED true
 	#endif
 
