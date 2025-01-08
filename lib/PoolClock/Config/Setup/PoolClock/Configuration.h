@@ -93,7 +93,7 @@
 
 	#if USE_ESPTOUCH_SMART_CONFIG == false
 		/**
-		 * \brief WIFI_SSID and WIFI_PW are only needed if smart setup is disabled
+		 * \brief WIFI_SSID and WIFI_PASSWORD are only needed if smart setup is disabled
 		 */
 		#include "Secrets.h"  // To include the WIFI SSID and Password
 		#define WIFI_WITHOUT_SCANNING_PHASE false // TODOPROD false
@@ -300,7 +300,7 @@
 	/**
 	 * \brief Pin to which the downlight led Strip data pin is connected to
 	 */
-	#define DOWNLIGHT_LED_DATA_PIN			5
+	#define DOWNLIGHT_LED_DATA_PIN			19 
 #endif
 
 /**
@@ -402,7 +402,7 @@ enum DisplayIDs {
 	/**
 	 * \brief ADC pin to which the light sensor is connected to
 	 */
-	#define LIGHT_SENSOR_PIN			19
+	#define LIGHT_SENSOR_PIN			34
 
 	/**
 	 * \brief How many measurements shall be averaged. Higher number -> smoother but slower change
@@ -509,7 +509,11 @@ enum DisplayIDs {
 	 */
 	#define WATER_TEMP_PIN			4
 	#define waterThermometerName    "Water Thermometer"
-	#define waterThermometerAddress "28881B94970E03DA" 
+	#define waterThermometerAddress "28881B94970E03DA"
+		/**
+	 * \brief Frequency to read the wter temperature in ms
+	 */
+	#define WATER_TEMP_READ_FREQUENCY	30000
 #endif
 
 /***************************
@@ -541,10 +545,10 @@ enum DisplayIDs {
 #define AIR_TEMP_SENSOR			true //TODOPROD true
 
 #if AIR_TEMP_SENSOR == true
-/**
+	/**
 	 * \brief Frequency to read the air temperature in ms
 	 */
-	#define AIR_TEMP_READ_FREQUENCY	5000
+	#define AIR_TEMP_READ_FREQUENCY	30000
 #endif
 
 /***************************

@@ -20,20 +20,21 @@ ClockState*   ClockS  = ClockState::getInstance();
 TimeManager*  TimeM   = TimeManager::getInstance();
 
 /**
- * \brief Construct a new Blynk Config object. Also poulate all variables of the class with meaningful values
+ * \brief Construct a new Blynk Config object. Also populate all variables of the class with meaningful values
  *
  */
 PoolClockCmd::PoolClockCmd()
 {
 	PoolClockDisplays = DisplayManager::getInstance();
+	timeM             = TimeManager::getInstance();
 	isClearAction     = false;
 	ColorSelection    = CHANGE_HOURS_COLOR;
 	UIUpdateRequired  = false;
 
-	_ModeButton = new EasyButton(BUTTON_MODE_PIN ,   40U, false, false);
-	_PlusButton = new EasyButton(BUTTON_PLUS_PIN ,   40U, false, false);
-	_PlayButton = new EasyButton(BUTTON_PLAY_PIN ,   40U, false, false);
-	_MinusButton= new EasyButton(BUTTON_MINUS_PIN,   40U, false, false);
+	_ModeButton = new EasyButton(BUTTON_MODE_PIN ,   30U, false, false);
+	_PlusButton = new EasyButton(BUTTON_PLUS_PIN ,   30U, false, false);
+	_PlayButton = new EasyButton(BUTTON_PLAY_PIN ,   30U, false, false);
+	_MinusButton= new EasyButton(BUTTON_MINUS_PIN,   30U, false, false);
 
 	_Mode_button_state  = NOT_PRESSED;
 	_Play_button_state  = NOT_PRESSED;
@@ -111,7 +112,7 @@ void PoolClockCmd::changeSelection(ColorSelector selector, bool state)
  *        all of it is coded in a blocking way and we don't want to influence the animation smoothness
  *
  */
-void PoolClockCmd::PoolClockCmdCode(void* pvParameters)
+void PoolClockCmd::PoolClockCmdLoopCode(void* pvParameters)
 {
 	Transitions_enum transition;
 	LOG_I(TAG, "Loop task running on core %d", xPortGetCoreID());
@@ -120,7 +121,11 @@ void PoolClockCmd::PoolClockCmdCode(void* pvParameters)
 	for(;;)
 	{
 		transition = ClockUI->read_buttons();
-	    ClockUI->state_machine_run(transition);
+		if ( transition != NONE && ClockUI->_last_transition == NONE) {
+			ClockUI->_last_transition = transition;
+			LOG_I(TAG, "Set _last_transition to: %d", transition);
+		}
+	    //ClockUI->state_machine_run(transition);
  
 		#if IS_BLYNK_ACTIVE == true
 			Blynk.run();
@@ -144,7 +149,8 @@ void PoolClockCmd::PoolClockCmdCode(void* pvParameters)
 			}
 		#endif
 		esp_task_wdt_reset();
-		delay(1); //needed to serve the wdg
+		//delay(1); //needed to serve the wdg
+		vTaskDelay(10 / portTICK_PERIOD_MS);
 	}
 }
 
@@ -162,8 +168,9 @@ void PoolClockCmd::setup()
 	_MinusButton->begin();
 	
 	// Default current state
-    _current_state = CLOCK; 
-    _last_state    = CLOCK;
+    _current_state  = CLOCK; 
+    _previous_state = CLOCK;
+	_last_transition= NONE;
 
 	// Default Timer Duration
 	_TimerDuration.hours   = 0;
@@ -175,6 +182,13 @@ void PoolClockCmd::setup()
 
 	// Default Timer Digit
 	_CurrentTimerDigit = HOUR_DIGIT;
+
+	#if AIR_TEMP_SENSOR == true
+		am232x = Sensor_AM232X::getInstance();
+	#endif
+	#if WATER_TEMP_SENSOR == true
+		DS18B20Sensors = Sensor_DS18B20::getInstance();
+	#endif
 
     // callback declaration
     _ModeButton-> onPressed(PoolClockCmd::Mode_onPressed);
@@ -189,13 +203,13 @@ void PoolClockCmd::setup()
 	LOG_I(TAG, "Starting PoolClockCmd on core 0...");
 	//Setup the loop task on the second core
 	xTaskCreatePinnedToCore(
-	PoolClockCmdCode,	// Task function.
-	"PoolClockCmdLoop",	// name of task.
-	10000,			    // Stack size of task
-	NULL,		    	// parameter of the task
-	1,				    // priority of the task
-	&PoolClockCmdLoop,	// Task handle to keep track of created task
-	0);				    // pin task to core 0
+	PoolClockCmdLoopCode,	// Task function.
+	"PoolClockCmdLoopCode",	// name of task.
+	10000,			        // Stack size of task
+	NULL,		    	    // parameter of the task
+	1,				        // priority of the task
+	&PoolClockCmdLoop,	    // Task handle to keep track of created task
+	0);				        // pin task to core 0
 }
 
 /**
@@ -249,6 +263,7 @@ void PoolClockCmd::Minus_onPressedForDuration() {
  */
 void PoolClockCmd::state_machine_run(Transitions_enum transition) 
 {
+	LOG_I(TAG, "PoolClockCmd::state_machine_run - Transition: %d",transition);
     switch(transition)
     {
         case NONE:              LOG_V(TAG, "buttons = NONE");               break;
@@ -265,85 +280,86 @@ void PoolClockCmd::state_machine_run(Transitions_enum transition)
     switch(_current_state)
     {
         case CLOCK:
-        if(transition == MODE){
-            ChgModeToTimer();
-            _current_state = TIMER;
-        }
-        else if(transition == LONG_MODE){
-            ChgModeToSetTimer();
-            _current_state = SET_TIMER;
-        }
-        else{
-            NOPE();
-            _current_state = CLOCK;
-        }
-        break;
+			if(transition == MODE){
+				ChgModeToTimer();
+				_current_state = TIMER;
+			}
+			else if(transition == LONG_MODE){
+				ChgModeToSetTimer();
+				_current_state = SET_TIMER;
+			}
+			else{
+				NOPE();
+				_current_state = CLOCK;
+			}
+        	break;
         
         case TIMER:
-        if(transition == MODE){
-            ChgModeToClock();
-            _current_state = CLOCK;
-        }
-        else if(transition == LONG_MODE){
-            ChgModeToSetTimer();
-            _current_state = SET_TIMER;
-        }
-        else if(transition == PLAY){
-            StartPauseResumeTimer();
-            _current_state = TIMER;
-        }
-        else if(transition == LONG_PLAY){
-            CancelTimer();
-            _current_state = TIMER;
-        }
-        else{
-            NOPE();
-            _current_state = TIMER;
-        }
-        break;
+			if(transition == MODE){
+				ChgModeToClock();
+				_current_state = CLOCK;
+			}
+			else if(transition == LONG_MODE){
+				ChgModeToSetTimer();
+				_current_state = SET_TIMER;
+			}
+			else if(transition == PLAY){
+				StartPauseResumeTimer();
+				_current_state = TIMER;
+			}
+			else if(transition == LONG_PLAY){
+				CancelTimer();
+				_current_state = TIMER;
+			}
+			else{
+				NOPE();
+				_current_state = TIMER;
+			}
+        	break;
     
         case SET_TIMER:
-        if(transition == MODE){
-            NOPE();
-            _current_state = SET_TIMER;
-        }
-        else if(transition == LONG_MODE){
-            ChgModeToClock();
-            _current_state = CLOCK;
-        }
-        else if(transition == PLAY ){
-            MoveNextDigit();
-            _current_state = SET_TIMER;
-        }
-        else if(transition == LONG_PLAY ){
-            ValidateSetTimer();
-            _current_state = TIMER;
-        }
-        else if(transition == PLUS ){
-            IncrementDigit();
-            _current_state = SET_TIMER;
-        }
-        else if(transition == LONG_PLUS ){
-            IncrementQuicklyDigit();
-            _current_state = SET_TIMER;
-        }
-        else if(transition == MINUS ){
-            DecrementDigit();
-            _current_state = SET_TIMER;
-        }
-        else if(transition == LONG_MINUS ){
-            DecrementQuicklyDigit();
-            _current_state = SET_TIMER;
-        }
-        else{
-            NOPE();
-            _current_state = SET_TIMER;
-        }
-        break;
+			if(transition == MODE){
+				ValidateSetTimer();
+				_current_state = TIMER;
+			}
+			else if(transition == LONG_MODE){
+				ChgModeToClock();
+				_current_state = CLOCK;
+			}
+			else if(transition == PLAY ){
+				MoveNextDigit();
+				_current_state = SET_TIMER;
+			}
+			else if(transition == LONG_PLAY ){
+				ValidateSetTimer();
+				_current_state = TIMER;
+			}
+			else if(transition == PLUS ){
+				IncrementDigit();
+				_current_state = SET_TIMER;
+			}
+			else if(transition == LONG_PLUS ){
+				IncrementQuicklyDigit();
+				_current_state = SET_TIMER;
+			}
+			else if(transition == MINUS ){
+				DecrementDigit();
+				_current_state = SET_TIMER;
+			}
+			else if(transition == LONG_MINUS ){
+				DecrementQuicklyDigit();
+				_current_state = SET_TIMER;
+			}
+			else{
+				NOPE();
+				_current_state = SET_TIMER;
+			}
+			break;
     }
-    if (_last_state != _current_state) 
+
+    if (_previous_state != _current_state) 
     {
-        _last_state = _current_state;
+        _previous_state = _current_state;
         {
             switch(_current_state)
             {
@@ -366,15 +382,23 @@ void PoolClockCmd::ChgModeToTimer()
 	ClockUI->PoolClockDisplays->setGlobalBrightness(ClockS->clockBrightness);
 	ClockS->switchMode(ClockState::TIMER_MODE);
 	_TimerState = STOPPED;
-	//TODO add LCD screen display change
+	#if LCD_SCREEN == true
+		LCDScreen_Timer_Mode(timeM, false);
+	#endif	
 }
 
 void PoolClockCmd::ChgModeToSetTimer()
 {
     LOG_I(TAG, "Action: Change Mode To Set Timer");
 	ClockUI->PoolClockDisplays->setGlobalBrightness(ClockS->clockBrightness);
-	ClockS->switchMode(ClockState::TIMER_MODE);
-	//TODO add LCD screen display change
+	ClockS->switchMode(ClockState::SET_TIMER);
+	timeM->setTimerDuration(_TimerDuration);
+	_CurrentTimerDigit = MINUTE_DIGIT;
+	_blinking_digit = LowMinute;
+	#if LCD_SCREEN == true
+		LCDScreen_Set_Timer(timeM, _blinking_digit);  
+	#endif	
+
 }
 
 void PoolClockCmd::ChgModeToClock()
@@ -382,31 +406,50 @@ void PoolClockCmd::ChgModeToClock()
     LOG_I(TAG, "Action: Change Mode To Clock");
 	ClockUI->PoolClockDisplays->setGlobalBrightness(ClockS->clockBrightness);
 	ClockS->switchMode(ClockState::CLOCK_MODE);
-	//TODO add LCD screen display change
+	float temperature1=0.0;
+	float humidity1=0.0;
+	float temperature2=0.0;
+	float humidity2=0.0;
+	#if AIR_TEMP_SENSOR == true
+		temperature1=am232x->getTemperature();
+		humidity1=am232x->getHumidity();
+	#endif
+	#if WATER_TEMP_SENSOR == true
+		temperature2=DS18B20Sensors->getPreciseTempCByAddress(waterThermometerAddress);
+	#endif
+	#if LCD_SCREEN == true
+		LCDScreen_Clock_Mode(timeM, temperature1, humidity1, temperature2, humidity2);
+	#endif	
 }
 
 void PoolClockCmd::StartPauseResumeTimer()
 {
     LOG_I(TAG, "Action: Start Pause Resume Timer");
+	bool isTimerStarted = false;
 	if (_TimerState == STOPPED)
 	{
 		TimeM->startTimer();
 		LOG_I(TAG, "Timer Started");
 		_TimerState = STARTED;
+		isTimerStarted = true;
 	}
 	else if (_TimerState == STARTED)
 	{
 		TimeM->stopTimer();
 		LOG_I(TAG, "Timer Paused");
 		_TimerState = PAUSED;
+		isTimerStarted = false;
 	}
 	else if (_TimerState == PAUSED)
 	{
 		TimeM->startTimer();
 		LOG_I(TAG, "Timer Resumed");
 		_TimerState = STARTED;
+		isTimerStarted = true;
 	}
-	//TODO add LCD screen display change
+	#if LCD_SCREEN == true
+		LCDScreen_Timer_Mode(timeM, isTimerStarted);
+	#endif	
 }
 
 void PoolClockCmd::CancelTimer()
@@ -419,13 +462,21 @@ void PoolClockCmd::CancelTimer()
 		LOG_I(TAG, "Timer Stopped");
 	}
 	_TimerState = STOPPED;
-	//TODO add LCD screen display change
+	#if LCD_SCREEN == true
+		LCDScreen_Timer_Mode(timeM, false);
+	#endif	
 }
 
 void PoolClockCmd::CancelSetTimer()
 {
     LOG_I(TAG, "Action: Cancel Set Timer");
-	//TODO add LCD screen display change
+	_TimerDuration.hours   = 0;
+	_TimerDuration.minutes = 0;
+	_TimerDuration.seconds = 0;
+	TimeM->setTimerDuration(_TimerDuration);
+	#if LCD_SCREEN == true
+		LCDScreen_Timer_Mode(timeM, false);
+	#endif	
 }
 
 void PoolClockCmd::ValidateSetTimer()
@@ -433,38 +484,50 @@ void PoolClockCmd::ValidateSetTimer()
     LOG_I(TAG, "Action: Validate Set Timer");
 	LOG_D(TAG, "Timer Duration: %d:%d:%d", _TimerDuration.hours, _TimerDuration.minutes, _TimerDuration.seconds);
 	TimeM->setTimerDuration(_TimerDuration);
-	//TODO add LCD screen display change
+	#if LCD_SCREEN == true
+		LCDScreen_Timer_Mode(timeM, false);
+	#endif	
 }
 
 void PoolClockCmd::MoveNextDigit()
 {
-    //delay(200);
 	if (_CurrentTimerDigit == HOUR_DIGIT) 
 	{
 		_CurrentTimerDigit = MINUTE_DIGIT;
 	    LOG_I(TAG, "Action: Move Digit to MINUTES");
+		_blinking_digit=LowMinute;
 	}
 	else
 	{
 		_CurrentTimerDigit = HOUR_DIGIT;
 	    LOG_I(TAG, "Action: Move Digit to HOURS");
+		_blinking_digit=LowHour;
 	}
-	//TODO add LCD screen display change
+	timeM->setTimerDuration(_TimerDuration);
+	#if LCD_SCREEN == true
+		LOG_I(TAG, "LCDScreen_Set_Timer from MoveNextDigit");
+		LCDScreen_Set_Timer(timeM, _blinking_digit);  
+	#endif	
 }
 
 void PoolClockCmd::IncrementDigit()
 {
     LOG_I(TAG, "Action: Increment Digit");
-    //delay(200);
 	if (_CurrentTimerDigit == HOUR_DIGIT)  {
 		_TimerDuration.hours++;
 		if (_TimerDuration.hours >= 24) _TimerDuration.hours = 0;
+		_blinking_digit=LowHour;
 	}
 	else {
 		_TimerDuration.minutes++;
 		if (_TimerDuration.minutes >= 60) _TimerDuration.minutes = 0;
+		_blinking_digit=LowMinute;
 	}
-	//TODO add LCD screen display change
+	timeM->setTimerDuration(_TimerDuration);
+	#if LCD_SCREEN == true
+		LOG_I(TAG, "LCDScreen_Set_Timer from IncrementDigit");
+		LCDScreen_Set_Timer(timeM, _blinking_digit);  
+	#endif	
 }
 
 void PoolClockCmd::IncrementQuicklyDigit()
@@ -473,27 +536,38 @@ void PoolClockCmd::IncrementQuicklyDigit()
 		if (_CurrentTimerDigit == HOUR_DIGIT)  {
 		_TimerDuration.hours = _TimerDuration.hours + 10;
 		if (_TimerDuration.hours >= 24) _TimerDuration.hours = 0;
+		_blinking_digit=HighHour;
 	}
 	else {
 		_TimerDuration.minutes = _TimerDuration.minutes + 10;
 		if (_TimerDuration.minutes >= 60) _TimerDuration.minutes = 0;
+		_blinking_digit=HighMinute;
 	}
-	//TODO add LCD screen display change
+	timeM->setTimerDuration(_TimerDuration);
+	#if LCD_SCREEN == true
+		LOG_I(TAG, "LCDScreen_Set_Timer from IncrementQuicklyDigit");
+		LCDScreen_Set_Timer(timeM, _blinking_digit);  
+	#endif	
 }
 
 void PoolClockCmd::DecrementDigit()
 {
     LOG_I(TAG, "Action: Decrement Digit");
-    //delay(200);
 	if (_CurrentTimerDigit == HOUR_DIGIT)  {
 		_TimerDuration.hours--;
 		if (_TimerDuration.hours < 0) _TimerDuration.hours = 23;
+		_blinking_digit=LowHour;
 	}
 	else {
 		_TimerDuration.minutes--;
 		if (_TimerDuration.minutes < 0) _TimerDuration.minutes = 59;
+		_blinking_digit=LowMinute;
 	}
-	//TODO add LCD screen display change
+	timeM->setTimerDuration(_TimerDuration);
+	#if LCD_SCREEN == true
+		LOG_I(TAG, "LCDScreen_Set_Timer from DecrementDigit");
+		LCDScreen_Set_Timer(timeM, _blinking_digit);  
+	#endif	
 }
 
 void PoolClockCmd::DecrementQuicklyDigit()
@@ -502,12 +576,18 @@ void PoolClockCmd::DecrementQuicklyDigit()
 	if (_CurrentTimerDigit == HOUR_DIGIT)  {
 		_TimerDuration.hours = _TimerDuration.hours -10;
 		if (_TimerDuration.hours < 0) _TimerDuration.hours = 23;
+		_blinking_digit=HighHour;
 	}
 	else {
 		_TimerDuration.minutes = _TimerDuration.minutes -10;
 		if (_TimerDuration.minutes < 0) _TimerDuration.minutes = 59;
+		_blinking_digit=HighMinute;
 	}
-	//TODO add LCD screen display change
+	timeM->setTimerDuration(_TimerDuration);
+	#if LCD_SCREEN == true
+		LOG_I(TAG, "LCDScreen_Set_Timer from DecrementQuicklyDigit");
+		LCDScreen_Set_Timer(timeM, _blinking_digit);  
+	#endif	
 }
 
 Transitions_enum PoolClockCmd::read_buttons()

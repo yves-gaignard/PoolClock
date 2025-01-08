@@ -82,8 +82,23 @@ bool TimeManager::init()
 
 String TimeManager::getCurrentTimeString(TimeManager::TimeFormat timeFormat)
 {
-	char buf[6];
+	char buf[10];
 	TimeInfo currentTime = getCurrentTime();
+	if (timeFormat == HourMinFormat )
+	{
+		sprintf(buf, "%02d:%02d", currentTime.hours, currentTime.minutes);
+	}
+	else if (timeFormat == HourMinSecFormat )
+	{
+		sprintf(buf, "%02d:%02d:%02d", currentTime.hours, currentTime.minutes, currentTime.seconds);
+	}
+	return String(buf);
+}
+
+String TimeManager::getCurrentTimerString(TimeManager::TimeFormat timeFormat)
+{
+	char buf[10];
+	TimeInfo currentTime = getRemainingTimerTime();
 	if (timeFormat == HourMinFormat )
 	{
 		sprintf(buf, "%02d:%02d", currentTime.hours, currentTime.minutes);
@@ -152,7 +167,7 @@ void TimeManager::advanceByOneSecondOffline()
 	}
 }
 
-void TimeManager::TimerCountDOwnByOneSecond()
+void TimeManager::TimerCountDownByOneSecond()
 {
 	TimerDuration.seconds--;
 	if(TimerDuration.seconds > 59)
@@ -290,7 +305,7 @@ void IRAM_ATTR onTimer()
 		//handle timer
 		if(timeM->TimerModeActive == true)
 		{
-			timeM->TimerCountDOwnByOneSecond();
+			timeM->TimerCountDownByOneSecond();
 			if(timeM->TimerTickCallback != nullptr)
 			{
 				timeM->TimerTickCallback();

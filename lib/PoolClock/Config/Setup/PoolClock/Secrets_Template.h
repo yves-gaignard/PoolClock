@@ -5,5 +5,5 @@
  *        This file is not recorded in the Git repository
  */
 
-#define WIFI_SSID	"SET_YOUR_SSID_HERE"
-#define WIFI_PW		"SET_YOUR_PASSWORD_HERE"
+#define WIFI_SSID	    "SET_YOUR_SSID_HERE"
+#define WIFI_PASSWORD	"SET_YOUR_PASSWORD_HERE"

@@ -50,7 +50,7 @@ enum State_enum {CLOCK, TIMER, SET_TIMER};
 */
 enum Transitions_enum {NONE, MODE, LONG_MODE, PLAY, LONG_PLAY, PLUS, LONG_PLUS, MINUS, LONG_MINUS};
 /**
-* \brief Enumeration of states that a push nutton may have
+* \brief Enumeration of states that a push button may have
 */
 enum Button_State_enum {NOT_PRESSED, PRESSED, LONG_PRESSED, RELEASED};
 /**
@@ -72,6 +72,15 @@ enum Timer_State_enum {STOPPED, STARTED, PAUSED};
  */
 void PoolClockCmdLoopCode(void* pvParameters);
 
+#if LCD_SCREEN == true
+	/**
+	 * \brief LCDScreen static functions
+	 *
+	 */
+	extern void LCDScreen_Clock_Mode(TimeManager* currentTime, float temperature1, float humidity1, float temperature2, float humidity2);
+	extern void LCDScreen_Timer_Mode(TimeManager* currentTimer, bool isTimerStarted);
+	extern void LCDScreen_Set_Timer (TimeManager* currentTimer, LCDScreen_TimeDigit digitCursor);
+#endif
 /**
  * @brief Button state variables
  * 
@@ -90,6 +99,12 @@ class PoolClockCmd
 private:
 	static PoolClockCmd* instance;
 	TaskHandle_t PoolClockCmdLoop;
+	#if AIR_TEMP_SENSOR == true
+    	Sensor_AM232X* am232x;
+	#endif
+	#if WATER_TEMP_SENSOR == true
+		Sensor_DS18B20* DS18B20Sensors;
+	#endif
 
 	PoolClockCmd();
 public:
@@ -106,7 +121,8 @@ public:
 	CRGB DotColor;
 	bool UIUpdateRequired;
 	DisplayManager* PoolClockDisplays;
-	bool isClearAction;
+	TimeManager*    timeM;
+	bool            isClearAction;
 
 	EasyButton* _ModeButton;
 	EasyButton* _PlayButton;
@@ -118,17 +134,18 @@ public:
 	 * 
 	 */
 	State_enum _current_state;
-	State_enum _last_state;
+	State_enum _previous_state;
+
+    Transitions_enum _last_transition;
 
 	/**
 	 * @brief Timer variables
 	 * 
 	 */
 	TimeManager::TimeInfo _TimerDuration;
-	Timer_Digit_enum _CurrentTimerDigit;
-	Timer_State_enum _TimerState;
-
-
+	Timer_Digit_enum      _CurrentTimerDigit;
+	Timer_State_enum      _TimerState;
+	LCDScreen_TimeDigit   _blinking_digit; 
 
 	~PoolClockCmd();
 	/**
@@ -151,7 +168,7 @@ public:
 	 *        all of it is coded in a blocking way and we don't want to influence the animation smoothness
 	 *
 	 */
-	static void PoolClockCmdCode(void* pvParameters);
+	static void PoolClockCmdLoopCode(void* pvParameters);
 	
 	/**
 	 * \brief Stop the execution of PoolClockCmd

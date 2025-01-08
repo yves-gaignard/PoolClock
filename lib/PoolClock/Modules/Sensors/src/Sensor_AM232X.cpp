@@ -53,6 +53,7 @@ bool Sensor_AM232X::init(int sda_pin, int scl_pin, uint32_t read_frequency)
     _sda_pin   = sda_pin;
     _scl_pin   = scl_pin;
     _read_frequency = read_frequency;
+    _last_read = - _read_frequency;
 
     LOG_I(TAG, "Initialization of AM232X Sensor");
 
@@ -95,13 +96,12 @@ void Sensor_AM232X::handle()
     if (_is_init)
     {
     	uint64_t currentMillis = millis();
-        if (_last_read + _read_frequency < currentMillis)
-        {
+        if (currentMillis - _last_read > uint64_t(_read_frequency) ) {
             int status = _AM232X->read();
             switch (status)
             {
                 case AM232X_OK:
-                  LOG_D(TAG, "AM232X sensor read status = OK");
+                  LOG_I(TAG, "AM232X sensor read status = OK");
                   break;
                 default:
                   LOG_E(TAG, "AM232X sensor read status = %d", status);

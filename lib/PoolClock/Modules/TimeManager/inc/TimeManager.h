@@ -79,7 +79,7 @@ private:
 
 	TimeManager();
 	void advanceByOneSecondOffline();
-	void TimerCountDOwnByOneSecond();
+	void TimerCountDownByOneSecond();
 public:
 	/**
 	 * \brief Destroy the Time Manager object
@@ -127,6 +127,11 @@ public:
 	 * \brief get the current time as a string specifying a format 
 	 */
 	String getCurrentTimeString(TimeManager::TimeFormat timeFormat = HourMinFormat);
+
+	/**
+	 * \brief get the current timer as a string specifying a format 
+	 */
+	String getCurrentTimerString(TimeManager::TimeFormat timeFormat = HourMinFormat);
 
 	/**
 	 * \brief Set the duration for the Timer

@@ -12,9 +12,14 @@
 
 #include <LogManager.h>
 
-static byte LCDPlayChar[]  = { B10000, B11000, B11100, B11110, B11110, B11100, B11000, B10000 };
+//static byte LCDPlayChar[]  = { B10000, B11000, B11100, B11110, B11110, B11100, B11000, B10000 };
+static uint8_t LCDPlayChar[8] = {B10000, B11000, B11100, B11110, B11110, B11100, B11000, B10000};
 static byte LCDPauseChar[] = { B01010, B01010, B01010, B01010, B01010, B01010, B01010, B01010 };
 static byte LCDStopChar[]  = { B00000, B00000, B01111, B01111, B01111, B01111, B00000, B00000 };
+
+#define CHAR_PLAY  1
+#define CHAR_PAUSE 2
+#define CHAR_STOP  3
 
 class LCDManager {
   private:
@@ -32,10 +37,13 @@ class LCDManager {
     int                      _scrollVerticalDelay   = 250; // time in milliseconds between one row shift of the scroll
     int                      _scrollDisplayTime     = 10;  // number of seconds to display the row or the screen
     std::string              _padding;                     // string containing a blank line
-    std::vector<std::string> _screen;                      // vector of strings. each string represent a line. The number of strings can be greater than the row number.
+    std::vector<std::string> _screenCache;                // vector of strings. each string represent a line. The number of strings can be greater than the row number.
                                                            // if the scrollState == false, string vector index > max row will ignore 
 
-    void _initLCD (uint8_t Device_Addr, uint8_t Cols, uint8_t Rows);
+
+    void _clearCache();
+
+    void _updateLCDRow(int row, std::string& line);
 
     void _printScrollLine   (uint8_t row, std::string& line, int scrollHorizontalDelay, int scrollDisplayTime);
 
@@ -44,12 +52,7 @@ class LCDManager {
     /**
      * \brief Definition of custom characters
      */
-    enum customChars
-    {
-      PLAY 		  = 0x00,
-      PAUSE 		= 0x01,
-      STOP    	= 0x02
-    };
+
       // Constructors
     LCDManager(uint8_t Device_Addr, uint8_t Cols, uint8_t Rows);
     ~LCDManager();
@@ -60,6 +63,7 @@ class LCDManager {
 
     boolean             getDisplayState();
 
+    void initLCDManager ();
     void init();
     void clear();
     void home();
@@ -69,6 +73,7 @@ class LCDManager {
     void noBlink();
     void cursor();
     void noCursor();
+    void setCursor(int row, int col);
     void noBacklight();
     void backlight();
 

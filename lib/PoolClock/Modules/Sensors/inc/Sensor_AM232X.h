@@ -48,8 +48,11 @@ public:
 
     /**
      * \brief initialize AM232X sensor
+     * \param sda_pin   : Pin number of SDA
+     * \param scl_pin   : Pin number of SCL
+     * \param frequency : frequency of the measure in milliseconds 
      */
-    bool init(int sda_pin, int scl_pin, uint32_t frequency = 500ul);
+    bool init(int sda_pin, int scl_pin, uint32_t frequency = 5000ul);
 
     /**
      * \brief Returns the current temperature
@@ -57,7 +60,7 @@ public:
     float getTemperature();
 
     /**
-     * \brief Returns the current himidity
+     * \brief Returns the current humidity
      */
     float getHumidity();
 

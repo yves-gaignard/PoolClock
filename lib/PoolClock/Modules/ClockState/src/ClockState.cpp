@@ -56,6 +56,7 @@ void ClockState::switchMode(ClockStates newState)
     {
         alarmToggleCount = 0;
     }
+	LOG_D(TAG, "ClockState::switchMode() ... From: %d To: %d", MainState, newState);
     MainState = newState;
 }
 
@@ -66,8 +67,8 @@ ClockState::ClockStates ClockState::getMode()
 
 void ClockState::handleStates()
 {
-	LOG_D(TAG, "ClockState::handleStates() ... Start");
-	if(lastUpdateMillis + TIME_UPDATE_INTERVAL <= millis()) // update the display only in a certain intervall
+	LOG_V(TAG, "ClockState::handleStates() ... Start");
+	if(lastUpdateMillis + TIME_UPDATE_INTERVAL <= millis()) // update the display only in a certain interval
 	{
 		// ========================
 		// Display of temperature
@@ -76,7 +77,9 @@ void ClockState::handleStates()
 		float humidity1=0.0;
 		float temperature2=0.0;
 		float humidity2=0.0;
+	
 		#if AIR_TEMP_SENSOR == true
+			am232x->handle();
 			temperature1=am232x->getTemperature();
 			humidity1=am232x->getHumidity();
 		#endif
@@ -132,10 +135,19 @@ void ClockState::handleStates()
 		break;
 		case ClockState::TIMER_MODE:
 			currentTime = timeM->getRemainingTimerTime();
-			LOG_I(TAG, "PoolClockDisplays->displayTimer... %02d:%02d:%02d",currentTime.hours, currentTime.minutes, currentTime.seconds);
+			LOG_D(TAG, "PoolClockDisplays->displayTimer... %02d:%02d:%02d",currentTime.hours, currentTime.minutes, currentTime.seconds);
 			PoolClockDisplays->displayTimer(currentTime.hours, currentTime.minutes, currentTime.seconds);
 			#if LCD_SCREEN == true
 				LCDScreen_Timer_Mode(timeM, true);
+			#endif
+		break;
+		case ClockState::SET_TIMER:
+			currentTime = timeM->getRemainingTimerTime();
+			LOG_D(TAG, "PoolClockDisplays->displaySetTimer... %02d:%02d:%02d",currentTime.hours, currentTime.minutes, currentTime.seconds);
+			PoolClockDisplays->displayTimer(currentTime.hours, currentTime.minutes, currentTime.seconds);
+			#if LCD_SCREEN == true
+				LOG_I(TAG, "ClockState from SET_TIMER");
+				LCDScreen_Set_Timer(timeM, LowMinute);  
 			#endif
 		break;
 		case ClockState::TIMER_NOTIFICATION:
@@ -185,5 +197,5 @@ void ClockState::handleStates()
 		}
 
 	}
-	LOG_D(TAG, "ClockState::handleStates() ... End");
+	LOG_V(TAG, "ClockState::handleStates() ... End");
 }

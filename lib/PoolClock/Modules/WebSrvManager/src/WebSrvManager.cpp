@@ -10,7 +10,7 @@
 
 // Standard library definitions
 #include <Arduino.h>
-#include <AsyncElegantOTA.h>
+#include <ElegantOTA.h>
 #include <LittleFS.h>
 //#include <ArduinoJson.h>          // JSON library
 
@@ -22,12 +22,39 @@
 
 #define FileSys LittleFS
 
-AsyncWebServer OTAServer(OTA_UPDATE_PORT);
+WebServer OTAServer(OTA_UPDATE_PORT);
 
 // forward declaration
 void WebSrvManager_recvMsg(uint8_t *data, size_t len);
 
 //void WebSrvManager_getMeasures(AsyncWebServerRequest *request);
+
+unsigned long ota_progress_millis = 0;
+
+void onOTAStart() {
+// Log when OTA has started
+Serial.println("OTA update started!");
+// <Add your own code here>
+}
+
+void onOTAProgress(size_t current, size_t final) {
+// Log every 1 second
+if (millis() - ota_progress_millis > 1000) {
+  ota_progress_millis = millis();
+  Serial.printf("OTA Progress Current: %u bytes, Final: %u bytes\n", current, final);
+}
+}
+
+void onOTAEnd(bool success) {
+// Log when OTA has finished
+if (success) {
+  Serial.println("OTA update finished successfully!");
+} else {
+  Serial.println("There was an error during OTA update!");
+}
+// <Add your own code here>
+}
+
 
 // Web server setup and start
 void WebSrvManager_setup(boolean isWebSerial) {
@@ -51,6 +78,7 @@ void WebSrvManager_setup(boolean isWebSerial) {
     file = root.openNextFile();
   }
 
+  /*
   OTAServer.on("/", HTTP_GET, WebSrvManager_root);
   //OTAServer.on("/getMeasures", HTTP_GET, WebSrvManager_getMeasures);
   OTAServer.onNotFound(WebSrvManager_notFound);
@@ -63,7 +91,6 @@ void WebSrvManager_setup(boolean isWebSerial) {
   {
     request->send(FileSys, "/script.js", "text/javascript");
   });
-  
   if (isWebSerial) {
     LOG_I(TAG, "Start Web Serial ....");
     // WebSerial is accessible at "<IP Address>/webserial" in browser
@@ -73,8 +100,14 @@ void WebSrvManager_setup(boolean isWebSerial) {
 
     Log.setWebSerialOn();
   }
+  */
   
-  AsyncElegantOTA.begin(&OTAServer);    // Start ElegantOTA
+  ElegantOTA.begin(&OTAServer);    // Start ElegantOTA
+  // ElegantOTA callbacks
+  ElegantOTA.onStart(onOTAStart);
+  ElegantOTA.onProgress(onOTAProgress);
+  ElegantOTA.onEnd(onOTAEnd);
+
   OTAServer.begin();
   LOG_I(TAG, "HTTP server started");
 }

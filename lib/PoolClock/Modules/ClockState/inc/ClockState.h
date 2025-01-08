@@ -32,7 +32,7 @@ class ClockState
 {
 public:
     /**
-     * \brief Avaliable clock modes each with a different behaviour
+     * \brief Available clock modes each with a different behaviour
      */
 	enum ClockStates {CLOCK_MODE, TIMER_MODE, SET_TIMER, TIMER_NOTIFICATION, ALARM_NOTIFICATION};
 private:

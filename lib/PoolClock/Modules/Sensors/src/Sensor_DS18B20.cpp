@@ -31,7 +31,7 @@ Sensor_DS18B20* Sensor_DS18B20::getInstance()
 Sensor_DS18B20::~Sensor_DS18B20(){
 }
 
-void Sensor_DS18B20::init (DallasTemperature & sensors) {
+void Sensor_DS18B20::init (DallasTemperature & sensors, uint32_t frequency) {
   _sensors = sensors;
   _sensors.begin(); // begin method needs to be called twice if you use OneWire library on platformio for versions above 2.3.2 (excluded) 
   _sensors.begin(); // (the by pass is reported on this issue https://github.com/platformio/platform-espressif32/issues/253 )
@@ -39,6 +39,9 @@ void Sensor_DS18B20::init (DallasTemperature & sensors) {
   _isInit=true;
   _deviceNameArray.reserve(3);
   _deviceAddressArray.reserve(3);
+  _lastRead=0;
+  _readFrequency = frequency;
+  this->requestTemperatures();
 }
 
 int Sensor_DS18B20::getDeviceCount() {
@@ -120,7 +123,12 @@ DallasTemperature& Sensor_DS18B20::getSensors() {
 // sends command for all devices on the bus to perform a temperature conversion
 void Sensor_DS18B20::requestTemperatures() {
   if (_isInit) {
-    _request = _sensors.requestTemperatures();
+    uint64_t currentMillis = millis();
+    if (currentMillis - _lastRead > uint64_t(_readFrequency) ) {
+      _request = _sensors.requestTemperatures();
+      _lastRead = millis();
+      LOG_D(TAG, "_sensors.requestTemperatures() at: %lu", _lastRead);
+    }
   }
   else {
     LOG_E(TAG, "TempManager object not initialized");
@@ -134,6 +142,8 @@ float Sensor_DS18B20::getPreciseTempCByIndex(int idx) {
     if (idx < 0 || idx >= _sensorNumber) {
       LOG_E(TAG, "Cannot get temperature for unknown sensor index: %d ", idx);
     }
+
+    this->requestTemperatures();
     temperatureC = -127.0; // retry in case of failure to get temperature
     int max_try = 5; 
     int nb_try = 0;
@@ -240,10 +250,10 @@ std::string Sensor_DS18B20::deviceAddressToString(DeviceAddress deviceAddress) {
   std::string deviceAddressString;
   for (int i = 0; i < 8; i++)
   {  
-    LOG_D(TAG, "deviceAddress[%d] = %d", i,  deviceAddress[i]);
+    LOG_V(TAG, "deviceAddress[%d] = %d", i,  deviceAddress[i]);
     // zero pad the address if necessary
     deviceAddressString += n2hexstr(deviceAddress[i]);
-    LOG_D(TAG, "deviceAddressString = %s", deviceAddressString.c_str());
+    LOG_V(TAG, "deviceAddressString = %s", deviceAddressString.c_str());
   }
   if (deviceAddressString.size() != 16) {
     LOG_E(TAG, "deviceAddressString = %s length is not 16", deviceAddressString.c_str());

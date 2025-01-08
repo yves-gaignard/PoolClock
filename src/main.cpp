@@ -23,13 +23,21 @@ const ProjectStructure Project {"Pool Clock", "1.0.0", "Yves Gaignard"};
 #include "DisplayManager.h"
 #include "ClockState.h"
 
+
 #if RUN_WITHOUT_WIFI == false
 	#include "WiFi.h"
+    #include <WiFiClient.h>
+    #include <WebServer.h>
 #endif
+
 #if ENABLE_OTA_UPLOAD == true
+	#include <ElegantOTA.h>
 	//#include <ArduinoOTA.h>
 	#include "WebSrvManager.h"
+	//webServer server(80);
+
 #endif
+
 #if IS_BLYNK_ACTIVE == true
 	#include "BlynkConfig.h"
 #endif
@@ -73,6 +81,7 @@ ClockState* states = ClockState::getInstance();
 #if PUSH_BUTTONS == true
 	#include "PoolClockCmd.h"
 	PoolClockCmd* PCCmd = PoolClockCmd::getInstance();
+	Transitions_enum _last_treated_transition;
 #endif
 
 #if ENABLE_OTA_UPLOAD == true
@@ -81,6 +90,14 @@ ClockState* states = ClockState::getInstance();
 #if RUN_WITHOUT_WIFI == false
 	void wifiSetup();
 #endif
+
+// Tasks Prototypes
+void TaskLED(void *pvParameters);
+void TaskTempSensors(void *pvParameters);
+void TaskPIRSensors(void *pvParameters);
+void TaskLCD(void *pvParameters);
+void TaskClock(void *pvParameters);
+void TaskStateMachine(void *pvParameters);
 
 void TimerTick();
 void TimerDone();
@@ -145,9 +162,9 @@ void setup()
 	Log.setTag("LogManager"          , DEFAULT_LOG_LEVEL);
 	Log.setTag("PoolClockCmd"        , LOG_DEBUG);
 	Log.setTag("PoolClock_main"      , LOG_DEBUG);
-	Log.setTag("Sensor_AM232X"       , LOG_DEBUG);
+	Log.setTag("Sensor_AM232X"       , DEFAULT_LOG_LEVEL);
 	Log.setTag("Sensor_DS18B20"      , DEFAULT_LOG_LEVEL);
-	Log.setTag("Sensor_HCSR501"      , LOG_DEBUG);
+	Log.setTag("Sensor_HCSR501"      , DEFAULT_LOG_LEVEL);
 	Log.setTag("SevenSegment"        , DEFAULT_LOG_LEVEL);
 	Log.setTag("TimeManager"         , DEFAULT_LOG_LEVEL);
 	Log.setTag("WebSrvManager"       , LOG_DEBUG);
@@ -156,6 +173,7 @@ void setup()
 
 	#if LCD_SCREEN == true
 		LOG_I(TAG, "LCDScreen initialization...");
+		lcd.initLCDManager();
 	    LCDScreen_Init(Project);
 	#endif
 
@@ -210,7 +228,7 @@ void setup()
 	#endif
 
 	#if WATER_TEMP_SENSOR == true
-  		DS18B20Sensors->init(dallasWaterTemp);
+  		DS18B20Sensors->init(dallasWaterTemp, WATER_TEMP_READ_FREQUENCY);
 
   		int DS18B20SensorsNumber = DS18B20Sensors->getDeviceCount();
 	    LOG_I(TAG, "%d DS18B20 sensors found", DS18B20SensorsNumber);
@@ -241,11 +259,22 @@ void setup()
 	#if PUSH_BUTTONS == true
 		LOG_I(TAG, "Push button initialization...");
 		PCCmd->setup();
+		_last_treated_transition = NONE;
 	#endif
 
 	LOG_I(TAG, "Displaying startup animation...");
 	startupAnimation();
 	LOG_I(TAG, "Setup done...");
+
+	/*
+	// Tasks Creation
+    //xTaskCreate(TaskLED       , "LED Task"               , 1000, NULL, 1, NULL);
+    xTaskCreate(TaskTempSensors , "Temperature Sensor Task", 2000, NULL, 1, NULL);
+    xTaskCreate(TaskPIRSensors  , "PIR Sensor Task"        , 2000, NULL, 1, NULL);
+    xTaskCreate(TaskLCD         , "LCD Task"               , 2000, NULL, 1, NULL);
+    xTaskCreate(TaskClock       , "Clock Task"             , 1000, NULL, 1, NULL);
+    xTaskCreate(TaskStateMachine, "State Machine Task"     , 2000, NULL, 1, NULL);
+	*/
 }
 
 void loop()
@@ -257,25 +286,6 @@ void loop()
 	#endif
 	LOG_V(TAG, "states->handleStates()...");
 	states->handleStates(); //updates display states, switches between modes etc.
-
-	// Test code:
-	// if((millis()-last)>= 1500)
-	// {
-	// 	PoolClockDisplays->test();
-	// 	last = millis();
-	// }
-	LOG_V(TAG, "PoolClockDisplays->handle()...");
-    PoolClockDisplays->handle();
-	LOG_V(TAG, "timeM->handle()...");
-	timeM->handle();
-
-	#if AIR_TEMP_SENSOR == true
-		am232x->handle();
-	#endif
-
-	#if WATER_TEMP_SENSOR == true
-		DS18B20Sensors->requestTemperatures();
-	#endif
 
 	#if PIR_SENSOR == true
 	    isDetected = PIRSensor->isMotionDetected();
@@ -300,7 +310,188 @@ void loop()
 
 	#if LCD_SCREEN == true
     #endif
+	if (PCCmd->_last_transition != NONE) {
+			LOG_D(TAG, "Main loop - Treat new transition: %d", PCCmd->_last_transition);
+			PCCmd->state_machine_run(PCCmd->_last_transition);
+			_last_treated_transition = PCCmd->_last_transition;
+			PCCmd->_last_transition = NONE;
+	} 
+
+	// Test code:
+	// if((millis()-last)>= 1500)
+	// {
+	// 	PoolClockDisplays->test();
+	// 	last = millis();
+	// }
+	LOG_V(TAG, "PoolClockDisplays->handle()...");
+    PoolClockDisplays->handle();
+	LOG_V(TAG, "timeM->handle()...");
+	timeM->handle();
+
+	
 }
+
+/*
+// Task LEDs WS2812B Management
+void TaskLED(void *pvParameters) {
+    while (1) {
+        if (pir_timer > 0) {
+            strip.fill(strip.Color(0, 255, 0), 0, NUM_LEDS); // Vert
+            strip.setBrightness(100);
+        } else {
+            strip.clear();
+        }
+        strip.show();
+        vTaskDelay(100 / portTICK_PERIOD_MS);
+    }
+}
+
+// Task Temperature Sensor management
+void TaskTempSensors(void *pvParameters) {
+    while (1) {
+		#if AIR_TEMP_SENSOR == true
+			am232x->handle();
+		#endif
+
+		#if WATER_TEMP_SENSOR == true
+			DS18B20Sensors->requestTemperatures();
+		#endif
+
+        vTaskDelay(30000 / portTICK_PERIOD_MS); // Get temperature every 30 seconds
+    }
+}
+
+// Task PIR Sensor management
+void TaskPIRSensors(void *pvParameters) {
+    while (1) {
+
+        sensors.requestTemperatures();
+        float temp_water = sensors.getTempCByIndex(0); // Température de l'eau
+        float temp_air = am2320.readTemperature();
+        float humidity_air = am2320.readHumidity();
+        int pir = digitalRead(PIR_PIN);
+        int light = analogRead(PHOTO_PIN);
+
+        // Détection PIR
+        if (pir == HIGH) {
+            pir_timer = 300; // 5 minutes
+            lcd_on = true;
+        } else if (pir_timer > 0) {
+            pir_timer--;
+            if (pir_timer == 0) lcd_on = false;
+        }
+
+        // Gestion de la luminosité selon la lumière ambiante
+        if (light < 500) { // Seuil pour la nuit
+            strip.setBrightness(50);
+            strip.fill(strip.Color(255, 0, 0), 0, NUM_LEDS); // Rouge doux
+        }
+
+        vTaskDelay(30000 / portTICK_PERIOD_MS); // Relevé toutes les 30 secondes
+    }
+}
+
+
+// Task LCD Management
+void TaskLCD(void *pvParameters) {
+    while (1) {
+        if (!lcd_on) {
+            lcd.noBacklight();
+        } else {
+            lcd.backlight();
+            lcd.clear();
+            lcd.setCursor(0, 0);
+
+            if (state == 0) { // Affichage de l'heure
+				LCDScreen_Clock_Mode(TimeManager* currentTime, float temperature1, float humidity1, float temperature2, float humidity2)
+                timeClient.update();
+                unsigned long epochTime = timeClient.getEpochTime();
+                struct tm *ptm = gmtime((time_t *)&epochTime);
+                lcd.printf("Heure: %02d:%02d:%02d", ptm->tm_hour, ptm->tm_min, ptm->tm_sec);
+
+                lcd.setCursor(0, 2);
+                lcd.printf("Air: %.1fC Hum: %.1f%%", am2320.readTemperature(), am2320.readHumidity());
+                lcd.setCursor(0, 3);
+                lcd.printf("Eau: %.1fC", sensors.getTempCByIndex(0));
+            } else if (state == 1 || state == 2) { // Timer
+                int minutes = timer / 60;
+                int seconds = timer % 60;
+                lcd.printf("Timer: %02dm %02ds", minutes, seconds);
+
+                if (state == 2) {
+                    lcd.setCursor(12, 1);
+                    lcd.print(adjust_minutes ? "MIN" : "SEC");
+                }
+            }
+        }
+        vTaskDelay(500 / portTICK_PERIOD_MS);
+    }
+}
+
+// Task Timer and Clock Management
+void TaskClock(void *pvParameters) {
+    while (1) {
+        if (timer_running) {
+            if (timer > 0) {
+                timer--;
+            } else {
+                timer_running = false;
+                digitalWrite(BUZZER_PIN, HIGH);
+                vTaskDelay(10000 / portTICK_PERIOD_MS);
+                digitalWrite(BUZZER_PIN, LOW);
+                Serial.println("Timer terminé !");
+            }
+        }
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+    }
+}
+
+// Task 5 : State Machine Management
+void TaskStateMachine(void *pvParameters) {
+    bool longPress = false;
+
+    while (1) {
+		
+        if (detectButtonPress(BTN_MODE, longPress)) {
+            switch (state) {
+                case 0: // CLOCK
+                    state = longPress ? 2 : 1;
+                    Serial.println(longPress ? "CLOCK -> SET_TIMER" : "CLOCK -> TIMER");
+                    break;
+                case 1: // TIMER
+                    state = longPress ? 2 : 0;
+                    Serial.println(longPress ? "TIMER -> SET_TIMER" : "TIMER -> CLOCK");
+                    break;
+                case 2: // SET_TIMER
+                    state = longPress ? 0 : 1;
+                    Serial.println(longPress ? "SET_TIMER -> CLOCK" : "SET_TIMER -> TIMER");
+                    break;
+            }
+        }
+        if (detectButtonPress(BTN_PLAY, longPress)) {
+            if (state == 2) adjust_minutes = !adjust_minutes;
+        }
+        if (state == 2 && detectButtonPress(BTN_PLUS, longPress)) {
+            if (adjust_minutes) {
+                timer += 60;
+            } else {
+                timer += 1;
+            }
+        }
+        if (state == 2 && detectButtonPress(BTN_MINUS, longPress)) {
+            if (adjust_minutes && timer >= 60) {
+                timer -= 60;
+            } else if (!adjust_minutes && timer >= 1) {
+                timer -= 1;
+            }
+        }
+        if (state == 1 && detectButtonPress(BTN_PLAY, longPress)) {
+            timer_running = !timer_running;
+        }
+        vTaskDelay(100 / portTICK_PERIOD_MS);
+    }
+}
+*/
 
 void AlarmTriggered()
 {
@@ -358,9 +549,9 @@ void TimerDone()
 		  WiFi.mode(WIFI_STA);
 		  LOG_I(TAG, "WIFI begin ...");
 		  #if WIFI_WITHOUT_SCANNING_PHASE == true
-			WiFi.begin(WIFI_SSID, WIFI_PW, 6 );   // specify the WiFi channel number (6) when calling WiFi.begin(). This skips the WiFi scanning phase and saves about 4 seconds when connecting to the WiFi.
+			WiFi.begin(WIFI_SSID, WIFI_PASSWORD, 6 );   // specify the WiFi channel number (6) when calling WiFi.begin(). This skips the WiFi scanning phase and saves about 4 seconds when connecting to the WiFi.
 		  #else
-			WiFi.begin(WIFI_SSID, WIFI_PW);
+			WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 		  #endif
 		#endif
 		if(WiFi.status() == WL_CONNECTED)
@@ -561,17 +752,20 @@ void TimerDone()
 		screen.clear();
 		screen.push_back(Project.Name);
 		screen.push_back("Version: " + Project.Version);
-		screen.push_back("");
+
+		//std::string line =  std::string("\x01", 1)+std::string("-")+std::string("\x02", 1)+std::string("-")+std::string("\x03", 1);	
+
+		screen.push_back("");	
 		screen.push_back(Project.Author);
 
 		screens.addScreen("Screen Init");
 		screens.setCurrentScreen(0);
 		screens.setInactivityTimeOutReset();
 
-		lcd.init();
-		lcd.clear();
-		lcd.display();
-		lcd.backlight();
+		//lcd.init();
+		//lcd.clear();
+		//lcd.display();
+		//lcd.backlight();
 		lcd.printScreen(screen);
 	}
 
@@ -586,7 +780,7 @@ void TimerDone()
 		|--------------------|
 		|     SCREEN 1       |
 		|--------------------|
-		|Mode : CLOCK        |
+		|       CLOCK        |
 		|Time : 20:22:44     | 
 		|Air  : T=12.7° H=67%| 
 		|Water: T=29.6°      |
@@ -596,23 +790,25 @@ void TimerDone()
 		sprintf(degreeAsciiChar, "%c", 176);
 
 		screen.clear();
-		screen.push_back("Mode : CLOCK");
+		screen.push_back("       CLOCK");
 
         std::string currentTimeStr  = currentTime->getCurrentTimeString(TimeManager::HourMinSecFormat).c_str();
 		screen.push_back("Time : "+currentTimeStr);
+		LOG_I(TAG, "currentTimeStr: %s", currentTimeStr.c_str());
 
 		std::string InAirTemp  = fct_ftoa(temperature1, "%3.1f");
 		std::string InAirHum   = fct_itoa((int) (humidity1 +0.5 - (humidity1<0)));
 		std::string WaterTemp  = fct_ftoa(temperature2, "%3.1f");
-		screen.push_back("Air  : T="+InAirTemp+degreeAsciiChar+" H=:"+InAirHum+"%");
+		screen.push_back("Air  : T="+InAirTemp+degreeAsciiChar+" H="+InAirHum+"%");
 		screen.push_back("Water: T="+WaterTemp+degreeAsciiChar);
 
 		screens.addOrReplaceScreen("Screen Clock Mode");
 		screens.setCurrentScreen(1);
 
-		lcd.clear();
-		lcd.display();
-		lcd.backlight();
+		//lcd.clear();
+		//lcd.display();
+		//lcd.backlight();
+		lcd.noBlink();
 		lcd.printScreen(screen);
 	}
 
@@ -627,36 +823,40 @@ void TimerDone()
 		|--------------------|
 		|      SCREEN 2      |         alt+175 »   alt+186 ║   alt+242 ≥
 		|--------------------|
-		|Mode : TIMER        |
-		|Timer: HH:MM:SS     |
+		|    TIMER STOPPED   | or   |    TIMER RUNNING   |
+		|Remains: HH:MM:SS   |
 		|    >  START        | or 	|    ║  PAUSE        |       
 		| Mode  CANCEL       | or 	|    ■  STOP         |
 		|--------------------|
 		*/  
 
-		screen.clear();
-		screen.push_back("Mode : TIMER");
 
-        std::string currentTimerStr  = currentTimer->getCurrentTimeString(TimeManager::HourMinSecFormat).c_str();
-		screen.push_back("Timer: "+currentTimerStr);
+		screen.clear();
+
+        std::string currentTimerStr  = currentTimer->getCurrentTimerString(TimeManager::HourMinSecFormat).c_str();
 
 		if (!isTimerStarted)
 		{
-			screen.push_back("    >  START");	
+			screen.push_back("    TIMER STOPPED");
+			screen.push_back("Remains: "+currentTimerStr);
+			screen.push_back(std::string("    ")+std::string("\x01", 1)+std::string("  START"));	
 			screen.push_back(" Mode  CANCEL");	
 		}
 		else
 		{
-			screen.push_back("    ║  PAUSE");	
-			screen.push_back("    ■  STOP");	
+			screen.push_back("    TIMER RUNNING");
+			screen.push_back("Remains: "+currentTimerStr);
+			screen.push_back(std::string("    ")+std::string("\x02", 1)+std::string("  PAUSE"));	
+			screen.push_back(std::string("    ")+std::string("\x03", 1)+std::string("  STOP"));	
 		}
 
 		screens.addOrReplaceScreen("Screen Timer Mode");
 		screens.setCurrentScreen(2);
 
-		lcd.clear();
-		lcd.display();
-		lcd.backlight();
+		//lcd.clear();
+		//lcd.display();
+		//lcd.backlight();
+		lcd.noBlink();
 		lcd.printScreen(screen);
 	}
 
@@ -674,27 +874,44 @@ void TimerDone()
 		|--------------------|
 		|     SCREEN 3       |
 		|--------------------|
-		|Mode: SET TIMER     |
+		|      SET TIMER     |
 		|Duration: HH:MM:SS  |
 		|+/- : Add/Decrease  |
-		|>  Next   Mode: OK  |
+		|> : Next   Mode: OK |
 		|--------------------|
 		*/
-		screen.clear();
-		screen.push_back("Mode: SET TIMER");
 
-        std::string currentTimerStr  = currentTimer->getCurrentTimeString(TimeManager::HourMinSecFormat).c_str();
-		screen.push_back("Duration: "+currentTimerStr);
+		std::string currentTimerStr  = currentTimer->getCurrentTimerString(TimeManager::HourMinSecFormat).c_str();
+		LOG_I(TAG, "set Time : currentTimeStr: %s  digit cursor: %d", currentTimerStr.c_str(), digitCursor);
+		
+		screen.clear();
+		screen.push_back("      SET TIMER");
+
+        screen.push_back("Duration: "+currentTimerStr);
 
 		screen.push_back("+/- : Add/Decrease");	
-		screen.push_back(">  Next   Mode: OK");	
+		screen.push_back(std::string("\x01", 1)+std::string(" : Next  Mode: OK"));	
 
 		screens.addOrReplaceScreen("Screen Set Timer");
 		screens.setCurrentScreen(3);
 
-		lcd.clear();
-		lcd.display();
-		lcd.backlight();
+		//lcd.clear();
+		//lcd.display();
+		//lcd.backlight();
 		lcd.printScreen(screen);
+		
+		int cursorRow = 1;
+		int cursorCol = 0;
+		switch(digitCursor)
+		{
+			case HighHour:   cursorCol = 10; break;
+			case LowHour:    cursorCol = 11; break;
+			case HighMinute: cursorCol = 13; break;
+			case LowMinute:  cursorCol = 14; break;
+			case HighSecond: cursorCol = 16; break;
+			case LowSecond:  cursorCol = 17; break;
+		}
+		lcd.setCursor(cursorRow, cursorCol);
+		lcd.blink();
 	}
 #endif

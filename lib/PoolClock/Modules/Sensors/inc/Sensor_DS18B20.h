@@ -25,6 +25,8 @@ class Sensor_DS18B20 {
     int                          _sensorNumber=0;
     std::vector<std::string>     _deviceAddressArray;
     std::vector<std::string>     _deviceNameArray;
+    uint64_t                     _lastRead;
+    uint32_t                     _readFrequency;
 
     // Constructor
     Sensor_DS18B20();
@@ -43,8 +45,8 @@ class Sensor_DS18B20 {
     // operator ==
     //friend bool operator== (const DeviceAddr& a, const DeviceAddr& b);
 
-    // initialization of the object (MANDATORY)
-    void init(DallasTemperature& sensors);
+    // initialization of the object (MANDATORY) - By default, the temperature will be read every 5000ms
+    void init(DallasTemperature& sensors, uint32_t frequency = 5000ul);
 
     // return the number of devices found
     int getDeviceCount();
