@@ -940,7 +940,7 @@ BLYNK_WRITE(BLYNK_CHANNEL_ALARM_TIME_INPUT)
  */
 BLYNK_WRITE(BLYNK_CHANNEL_ALARM_START_BUTTON)
 {
-	if(ClockS->getMode() == ClockState::ALARM_NOTIFICATION)
+	if(ClockS->getMode() == ALARM_NOTIFICATION)
 	{
 		Blynk.setProperty(BLYNK_CHANNEL_ALARM_START_BUTTON, "onLabel", "Deactivate");
 		TimeM->clearAlarm();

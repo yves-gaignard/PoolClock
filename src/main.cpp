@@ -21,7 +21,7 @@ const ProjectStructure Project {"Pool Clock", "1.0.0", "Yves Gaignard"};
 #include "Configuration.h"
 #include "LogManager.h"
 #include "DisplayManager.h"
-#include "PoolClockCmd.h"
+//#include "PoolClockCmd.h"
 #include "ClockState.h"
 
 #if RUN_WITHOUT_WIFI == false
@@ -80,8 +80,6 @@ ClockState* states = ClockState::getInstance();
 #endif
 
 #if PUSH_BUTTONS == true
-	#include "PoolClockCmd.h"
-	PoolClockCmd* PCCmd = PoolClockCmd::getInstance();
 	Transitions_enum _last_treated_transition;
 #endif
 
@@ -264,7 +262,7 @@ void setup()
 
 	#if PUSH_BUTTONS == true
 		LOG_I(TAG, "Push button initialization...");
-		PCCmd->setup();
+		states->setup();
 		_last_treated_transition = NONE;
 	#endif
 
@@ -293,6 +291,13 @@ void loop()
 	LOG_V(TAG, "states->handleStates()...");
 	states->handleStates(); //updates display states, switches between modes etc.
 
+	if (states->_last_transition != NONE) {
+			LOG_D(TAG, "Main loop - Treat new transition: %d", states->_last_transition);
+			states->state_machine_run(states->_last_transition);
+			_last_treated_transition = states->_last_transition;
+			states->_last_transition = NONE;
+	} 
+
 	#if PIR_SENSOR == true
 	    isDetected = PIRSensor->isMotionDetected();
 	
@@ -314,27 +319,10 @@ void loop()
 		}
 	#endif
 
-	#if LCD_SCREEN == true
-    #endif
-	if (PCCmd->_last_transition != NONE) {
-			LOG_D(TAG, "Main loop - Treat new transition: %d", PCCmd->_last_transition);
-			PCCmd->state_machine_run(PCCmd->_last_transition);
-			_last_treated_transition = PCCmd->_last_transition;
-			PCCmd->_last_transition = NONE;
-	} 
-
-	// Test code:
-	// if((millis()-last)>= 1500)
-	// {
-	// 	PoolClockDisplays->test();
-	// 	last = millis();
-	// }
 	LOG_V(TAG, "PoolClockDisplays->handle()...");
     PoolClockDisplays->handle();
 	LOG_V(TAG, "timeM->handle()...");
 	timeM->handle();
-
-	
 }
 
 /*
@@ -501,7 +489,7 @@ void TaskStateMachine(void *pvParameters) {
 
 void AlarmTriggered()
 {
-    states->switchMode(ClockState::ALARM_NOTIFICATION);
+    states->switchMode(ALARM_NOTIFICATION);
 	#if IS_BLYNK_ACTIVE == true
 		BlynkConfiguration->updateUI();
 	#endif
@@ -516,7 +504,7 @@ void TimerTick()
 
 void TimerDone()
 {
-    states->switchMode(ClockState::TIMER_NOTIFICATION);
+    states->switchMode(TIMER_NOTIFICATION);
 	#if IS_BLYNK_ACTIVE == true
 		BlynkConfiguration->updateUI();
 	#endif
@@ -818,7 +806,7 @@ void TimerDone()
 		lcd.printScreen(screen);
 	}
 
-	void LCDScreen_Timer_Mode(TimeManager* currentTimer, bool isTimerStarted)
+	void LCDScreen_Timer_Mode(TimeManager* currentTimer, Timer_State_enum timerState)
 	{
 		std::vector<std::string> screen;
 		std::string DisplayLine;
@@ -836,25 +824,35 @@ void TimerDone()
 		|--------------------|
 		*/  
 
-		screen.clear();
-
         std::string currentTimerStr  = currentTimer->getCurrentTimerString(TimeManager::HourMinSecFormat).c_str();
-		LOG_I(TAG, "LCDScreen_Timer_Mode - currentTimer: %s - isTimerStarted: %s", currentTimerStr.c_str(), isTimerStarted ? "true" : "false");	
 
-		if (!isTimerStarted)
-		{
-			screen.push_back("    TIMER STOPPED");
-			screen.push_back("Remains: "+currentTimerStr);
-			screen.push_back(std::string("    ")+std::string("\x01", 1)+std::string("  START"));	
-			screen.push_back(" Mode  CANCEL");	
+		screen.clear();
+		std::string timerStateStr;
+		switch (timerState) {
+			case STOPPED  : timerStateStr = "STOPPED"  ; break;
+			case RUNNING  : timerStateStr = "RUNNING"  ; break;
+			case PAUSED   : timerStateStr = "PAUSED"   ; break;
+			case CANCELLED: timerStateStr = "CANCELLED"; break;
 		}
-		else
-		{
-			screen.push_back("    TIMER RUNNING");
-			screen.push_back("Remains: "+currentTimerStr);
-			screen.push_back(std::string("    ")+std::string("\x02", 1)+std::string("  PAUSE"));	
-			screen.push_back(std::string("    ")+std::string("\x03", 1)+std::string("  STOP"));	
+		LOG_I(TAG, "LCDScreen_Timer_Mode - currentTimer: %s - State: %s", currentTimerStr.c_str(), timerStateStr.c_str());	
+		screen.push_back("    TIMER "+timerStateStr);
+		screen.push_back("Remains: "+currentTimerStr);
+
+		switch (timerState) {
+			case STOPPED: 
+				screen.push_back(std::string("    ")+std::string("\x01", 1)+std::string("  START"));	
+			break;
+			case PAUSED : 
+				screen.push_back(std::string("    ")+std::string("\x01", 1)+std::string("  RESUME"));	
+			break;
+			case RUNNING: 
+				screen.push_back(std::string("    ")+std::string("\x02", 1)+std::string("  PAUSE"));
+			break;
+			case CANCELLED: 
+				screen.push_back(std::string("    ")+std::string("\x01", 1)+std::string("  RESTART"));
+			break;
 		}
+		screen.push_back(" Mode  CANCEL");	
 
 		screens.addOrReplaceLCDScreen("Screen Timer Mode");
 		screens.setCurrentLCDScreen(2);
