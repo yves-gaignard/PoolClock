@@ -66,13 +66,13 @@ bool TimeManager::init()
 
 	//synchronize the time for the first time then start the timer
 	uint8_t retry = 0;
-	bool fistSyncSuccess = synchronize();
-	while(fistSyncSuccess != true && retry <= 20)
+	bool firstSyncSuccess = synchronize();
+	while(firstSyncSuccess != true && retry <= 20)
 	{
-		fistSyncSuccess = synchronize();
+		firstSyncSuccess = synchronize();
 		retry++;
 	}
-	if(fistSyncSuccess == false)
+	if(firstSyncSuccess == false)
 	{
 		return false;
 	}

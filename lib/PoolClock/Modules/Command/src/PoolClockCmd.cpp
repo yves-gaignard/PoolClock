@@ -14,10 +14,19 @@
  */
 #include <BlynkSimpleEsp32.h>
 
-PoolClockCmd* PoolClockCmd::instance = nullptr;
+PoolClockCmd* PoolClockCmd::_instance = nullptr;
 PoolClockCmd* ClockUI = PoolClockCmd::getInstance();
 ClockState*   ClockS  = ClockState::getInstance();
 TimeManager*  TimeM   = TimeManager::getInstance();
+
+#if LCD_SCREEN == true
+	/**
+	 * \brief The PoolClock screens function declarations
+	*/
+	extern void LCDScreen_Clock_Mode(TimeManager* currentTime, float temperature1, float humidity1, float temperature2, float humidity2);
+	extern void LCDScreen_Timer_Mode(TimeManager* currentTimer, bool isTimerStarted);
+	extern void LCDScreen_Set_Timer (TimeManager* currentTimer, LCDScreen_BlinkingDigit digitCursor);
+#endif
 
 /**
  * \brief Construct a new Blynk Config object. Also populate all variables of the class with meaningful values
@@ -25,11 +34,11 @@ TimeManager*  TimeM   = TimeManager::getInstance();
  */
 PoolClockCmd::PoolClockCmd()
 {
-	PoolClockDisplays = DisplayManager::getInstance();
-	timeM             = TimeManager::getInstance();
-	isClearAction     = false;
-	ColorSelection    = CHANGE_HOURS_COLOR;
-	UIUpdateRequired  = false;
+	_PoolClockDisplays = DisplayManager::getInstance();
+	_timeM             = TimeManager::getInstance();
+	_isClearAction     = false;
+	_ColorSelection    = CHANGE_HOURS_COLOR;
+	_UIUpdateRequired  = false;
 
 	_ModeButton = new EasyButton(BUTTON_MODE_PIN ,   30U, false, false);
 	_PlusButton = new EasyButton(BUTTON_PLUS_PIN ,   30U, false, false);
@@ -48,7 +57,7 @@ PoolClockCmd::PoolClockCmd()
  */
 PoolClockCmd::~PoolClockCmd()
 {
-	instance = nullptr;
+	_instance = nullptr;
 }
 
 /**
@@ -59,11 +68,11 @@ PoolClockCmd::~PoolClockCmd()
  */
 PoolClockCmd* PoolClockCmd::getInstance()
 {
-	if(instance == nullptr)
+	if(_instance == nullptr)
 	{
-		instance = new PoolClockCmd();
+		_instance = new PoolClockCmd();
 	}
-	return instance;
+	return _instance;
 }
 
 /**
@@ -72,7 +81,7 @@ PoolClockCmd* PoolClockCmd::getInstance()
  */
 void PoolClockCmd::stop()
 {
-	vTaskDelete(PoolClockCmdLoop);
+	vTaskDelete(_PoolClockCmdLoop);
 }
 
 /**
@@ -83,27 +92,27 @@ void PoolClockCmd::changeSelection(ColorSelector selector, bool state)
 {
 	if(state == true)
 	{
-		ColorSelection |= selector;
+		_ColorSelection |= selector;
 	}
 	else
 	{
-		ColorSelection &= ~selector;
+		_ColorSelection &= ~selector;
 	}
-	if(ClockUI->ColorSelection == PoolClockCmd::CHANGE_HOURS_COLOR)
+	if(ClockUI->_ColorSelection == PoolClockCmd::CHANGE_HOURS_COLOR)
 	{
-		Blynk.virtualWrite(BLYNK_CHANNEL_CURRENT_COLOR_PICKER, ClockUI->HourColor.r, ClockUI->HourColor.g, ClockUI->HourColor.b);
+		Blynk.virtualWrite(BLYNK_CHANNEL_CURRENT_COLOR_PICKER, ClockUI->_HourColor.r, ClockUI->_HourColor.g, ClockUI->_HourColor.b);
 	}
-	if(ClockUI->ColorSelection == PoolClockCmd::CHANGE_MINUTES_COLOR)
+	if(ClockUI->_ColorSelection == PoolClockCmd::CHANGE_MINUTES_COLOR)
 	{
-		Blynk.virtualWrite(BLYNK_CHANNEL_CURRENT_COLOR_PICKER, ClockUI->MinuteColor.r, ClockUI->MinuteColor.g, ClockUI->MinuteColor.b);
+		Blynk.virtualWrite(BLYNK_CHANNEL_CURRENT_COLOR_PICKER, ClockUI->_MinuteColor.r, ClockUI->_MinuteColor.g, ClockUI->_MinuteColor.b);
 	}
-	if(ClockUI->ColorSelection == PoolClockCmd::CHANGE_INTERIOR_COLOR)
+	if(ClockUI->_ColorSelection == PoolClockCmd::CHANGE_INTERIOR_COLOR)
 	{
-		Blynk.virtualWrite(BLYNK_CHANNEL_CURRENT_COLOR_PICKER, ClockUI->InternalColor.r, ClockUI->InternalColor.g, ClockUI->InternalColor.b);
+		Blynk.virtualWrite(BLYNK_CHANNEL_CURRENT_COLOR_PICKER, ClockUI->_InternalColor.r, ClockUI->_InternalColor.g, ClockUI->_InternalColor.b);
 	}
-	if(ClockUI->ColorSelection == PoolClockCmd::CHANGE_DOT_COLOR)
+	if(ClockUI->_ColorSelection == PoolClockCmd::CHANGE_DOT_COLOR)
 	{
-		Blynk.virtualWrite(BLYNK_CHANNEL_CURRENT_COLOR_PICKER, ClockUI->DotColor.r, ClockUI->DotColor.g, ClockUI->DotColor.b);
+		Blynk.virtualWrite(BLYNK_CHANNEL_CURRENT_COLOR_PICKER, ClockUI->_DotColor.r, ClockUI->_DotColor.g, ClockUI->_DotColor.b);
 	}
 }
 
@@ -184,10 +193,10 @@ void PoolClockCmd::setup()
 	_CurrentTimerDigit = HOUR_DIGIT;
 
 	#if AIR_TEMP_SENSOR == true
-		am232x = Sensor_AM232X::getInstance();
+		_am232x = Sensor_AM232X::getInstance();
 	#endif
 	#if WATER_TEMP_SENSOR == true
-		DS18B20Sensors = Sensor_DS18B20::getInstance();
+		_DS18B20Sensors = Sensor_DS18B20::getInstance();
 	#endif
 
     // callback declaration
@@ -208,7 +217,7 @@ void PoolClockCmd::setup()
 	10000,			        // Stack size of task
 	NULL,		    	    // parameter of the task
 	1,				        // priority of the task
-	&PoolClockCmdLoop,	    // Task handle to keep track of created task
+	&_PoolClockCmdLoop,	    // Task handle to keep track of created task
 	0);				        // pin task to core 0
 }
 
@@ -379,24 +388,25 @@ void PoolClockCmd::NOPE()
 void PoolClockCmd::ChgModeToTimer()
 {
     LOG_I(TAG, "Action: Change Mode To Timer");
-	ClockUI->PoolClockDisplays->setGlobalBrightness(ClockS->clockBrightness);
+	ClockUI->_PoolClockDisplays->setGlobalBrightness(ClockS->_clockBrightness);
 	ClockS->switchMode(ClockState::TIMER_MODE);
 	_TimerState = STOPPED;
 	#if LCD_SCREEN == true
-		LCDScreen_Timer_Mode(timeM, false);
+		LCDScreen_Timer_Mode(_timeM, false);
 	#endif	
 }
 
 void PoolClockCmd::ChgModeToSetTimer()
 {
     LOG_I(TAG, "Action: Change Mode To Set Timer");
-	ClockUI->PoolClockDisplays->setGlobalBrightness(ClockS->clockBrightness);
+	ClockUI->_PoolClockDisplays->setGlobalBrightness(ClockS->_clockBrightness);
 	ClockS->switchMode(ClockState::SET_TIMER);
-	timeM->setTimerDuration(_TimerDuration);
+	_timeM->setTimerDuration(_TimerDuration);
 	_CurrentTimerDigit = MINUTE_DIGIT;
-	_blinking_digit = LowMinute;
+	_lcd_blinking_digit = LowMinute;
 	#if LCD_SCREEN == true
-		LCDScreen_Set_Timer(timeM, _blinking_digit);  
+		LOG_I(TAG, "LCDScreen_Set_Timer from ChgModeToSetTimer - cursor on: %d", _lcd_blinking_digit);
+		LCDScreen_Set_Timer(_timeM, _lcd_blinking_digit);  
 	#endif	
 
 }
@@ -404,21 +414,21 @@ void PoolClockCmd::ChgModeToSetTimer()
 void PoolClockCmd::ChgModeToClock()
 {
     LOG_I(TAG, "Action: Change Mode To Clock");
-	ClockUI->PoolClockDisplays->setGlobalBrightness(ClockS->clockBrightness);
+	ClockUI->_PoolClockDisplays->setGlobalBrightness(ClockS->_clockBrightness);
 	ClockS->switchMode(ClockState::CLOCK_MODE);
 	float temperature1=0.0;
 	float humidity1=0.0;
 	float temperature2=0.0;
 	float humidity2=0.0;
 	#if AIR_TEMP_SENSOR == true
-		temperature1=am232x->getTemperature();
-		humidity1=am232x->getHumidity();
+		temperature1=_am232x->getTemperature();
+		humidity1=_am232x->getHumidity();
 	#endif
 	#if WATER_TEMP_SENSOR == true
-		temperature2=DS18B20Sensors->getPreciseTempCByAddress(waterThermometerAddress);
+		temperature2=_DS18B20Sensors->getPreciseTempCByAddress(waterThermometerAddress);
 	#endif
 	#if LCD_SCREEN == true
-		LCDScreen_Clock_Mode(timeM, temperature1, humidity1, temperature2, humidity2);
+		LCDScreen_Clock_Mode(_timeM, temperature1, humidity1, temperature2, humidity2);
 	#endif	
 }
 
@@ -448,7 +458,7 @@ void PoolClockCmd::StartPauseResumeTimer()
 		isTimerStarted = true;
 	}
 	#if LCD_SCREEN == true
-		LCDScreen_Timer_Mode(timeM, isTimerStarted);
+		LCDScreen_Timer_Mode(_timeM, isTimerStarted);
 	#endif	
 }
 
@@ -463,7 +473,7 @@ void PoolClockCmd::CancelTimer()
 	}
 	_TimerState = STOPPED;
 	#if LCD_SCREEN == true
-		LCDScreen_Timer_Mode(timeM, false);
+		LCDScreen_Timer_Mode(_timeM, false);
 	#endif	
 }
 
@@ -475,7 +485,7 @@ void PoolClockCmd::CancelSetTimer()
 	_TimerDuration.seconds = 0;
 	TimeM->setTimerDuration(_TimerDuration);
 	#if LCD_SCREEN == true
-		LCDScreen_Timer_Mode(timeM, false);
+		LCDScreen_Timer_Mode(_timeM, false);
 	#endif	
 }
 
@@ -485,7 +495,7 @@ void PoolClockCmd::ValidateSetTimer()
 	LOG_D(TAG, "Timer Duration: %d:%d:%d", _TimerDuration.hours, _TimerDuration.minutes, _TimerDuration.seconds);
 	TimeM->setTimerDuration(_TimerDuration);
 	#if LCD_SCREEN == true
-		LCDScreen_Timer_Mode(timeM, false);
+		LCDScreen_Timer_Mode(_timeM, false);
 	#endif	
 }
 
@@ -495,18 +505,18 @@ void PoolClockCmd::MoveNextDigit()
 	{
 		_CurrentTimerDigit = MINUTE_DIGIT;
 	    LOG_I(TAG, "Action: Move Digit to MINUTES");
-		_blinking_digit=LowMinute;
+		_lcd_blinking_digit=LowMinute;
 	}
 	else
 	{
 		_CurrentTimerDigit = HOUR_DIGIT;
 	    LOG_I(TAG, "Action: Move Digit to HOURS");
-		_blinking_digit=LowHour;
+		_lcd_blinking_digit=LowHour;
 	}
-	timeM->setTimerDuration(_TimerDuration);
+	_timeM->setTimerDuration(_TimerDuration);
 	#if LCD_SCREEN == true
-		LOG_I(TAG, "LCDScreen_Set_Timer from MoveNextDigit");
-		LCDScreen_Set_Timer(timeM, _blinking_digit);  
+		LOG_D(TAG, "LCDScreen_Set_Timer from MoveNextDigit - cursor on: %d", _lcd_blinking_digit);
+		LCDScreen_Set_Timer(_timeM, _lcd_blinking_digit);  
 	#endif	
 }
 
@@ -516,17 +526,17 @@ void PoolClockCmd::IncrementDigit()
 	if (_CurrentTimerDigit == HOUR_DIGIT)  {
 		_TimerDuration.hours++;
 		if (_TimerDuration.hours >= 24) _TimerDuration.hours = 0;
-		_blinking_digit=LowHour;
+		_lcd_blinking_digit=LowHour;
 	}
 	else {
 		_TimerDuration.minutes++;
 		if (_TimerDuration.minutes >= 60) _TimerDuration.minutes = 0;
-		_blinking_digit=LowMinute;
+		_lcd_blinking_digit=LowMinute;
 	}
-	timeM->setTimerDuration(_TimerDuration);
+	_timeM->setTimerDuration(_TimerDuration);
 	#if LCD_SCREEN == true
-		LOG_I(TAG, "LCDScreen_Set_Timer from IncrementDigit");
-		LCDScreen_Set_Timer(timeM, _blinking_digit);  
+		LOG_I(TAG, "LCDScreen_Set_Timer from IncrementDigit - cursor on: %d", _lcd_blinking_digit);
+		LCDScreen_Set_Timer(_timeM, _lcd_blinking_digit);  
 	#endif	
 }
 
@@ -536,17 +546,17 @@ void PoolClockCmd::IncrementQuicklyDigit()
 		if (_CurrentTimerDigit == HOUR_DIGIT)  {
 		_TimerDuration.hours = _TimerDuration.hours + 10;
 		if (_TimerDuration.hours >= 24) _TimerDuration.hours = 0;
-		_blinking_digit=HighHour;
+		_lcd_blinking_digit=HighHour;
 	}
 	else {
 		_TimerDuration.minutes = _TimerDuration.minutes + 10;
 		if (_TimerDuration.minutes >= 60) _TimerDuration.minutes = 0;
-		_blinking_digit=HighMinute;
+		_lcd_blinking_digit=HighMinute;
 	}
-	timeM->setTimerDuration(_TimerDuration);
+	_timeM->setTimerDuration(_TimerDuration);
 	#if LCD_SCREEN == true
-		LOG_I(TAG, "LCDScreen_Set_Timer from IncrementQuicklyDigit");
-		LCDScreen_Set_Timer(timeM, _blinking_digit);  
+		LOG_I(TAG, "LCDScreen_Set_Timer from IncrementQuicklyDigit - cursor on: %d", _lcd_blinking_digit);
+		LCDScreen_Set_Timer(_timeM, _lcd_blinking_digit);  
 	#endif	
 }
 
@@ -554,19 +564,17 @@ void PoolClockCmd::DecrementDigit()
 {
     LOG_I(TAG, "Action: Decrement Digit");
 	if (_CurrentTimerDigit == HOUR_DIGIT)  {
-		_TimerDuration.hours--;
-		if (_TimerDuration.hours < 0) _TimerDuration.hours = 23;
-		_blinking_digit=LowHour;
+		if (_TimerDuration.hours > 0) _TimerDuration.hours--;
+		_lcd_blinking_digit=LowHour;
 	}
 	else {
-		_TimerDuration.minutes--;
-		if (_TimerDuration.minutes < 0) _TimerDuration.minutes = 59;
-		_blinking_digit=LowMinute;
+		if (_TimerDuration.minutes > 0) _TimerDuration.minutes--;
+		_lcd_blinking_digit=LowMinute;
 	}
-	timeM->setTimerDuration(_TimerDuration);
+	_timeM->setTimerDuration(_TimerDuration);
 	#if LCD_SCREEN == true
-		LOG_I(TAG, "LCDScreen_Set_Timer from DecrementDigit");
-		LCDScreen_Set_Timer(timeM, _blinking_digit);  
+		LOG_I(TAG, "LCDScreen_Set_Timer from DecrementDigit - cursor on: %d", _lcd_blinking_digit);
+		LCDScreen_Set_Timer(_timeM, _lcd_blinking_digit);  
 	#endif	
 }
 
@@ -574,19 +582,19 @@ void PoolClockCmd::DecrementQuicklyDigit()
 {
     LOG_I(TAG, "Action: Decrement Quickly Digit");
 	if (_CurrentTimerDigit == HOUR_DIGIT)  {
-		_TimerDuration.hours = _TimerDuration.hours -10;
-		if (_TimerDuration.hours < 0) _TimerDuration.hours = 23;
-		_blinking_digit=HighHour;
+		if (_TimerDuration.hours >= 10) _TimerDuration.hours = _TimerDuration.hours -10;
+		else _TimerDuration.hours = 0;
+		_lcd_blinking_digit=HighHour;
 	}
 	else {
-		_TimerDuration.minutes = _TimerDuration.minutes -10;
-		if (_TimerDuration.minutes < 0) _TimerDuration.minutes = 59;
-		_blinking_digit=HighMinute;
+		if (_TimerDuration.minutes >= 10) _TimerDuration.minutes = _TimerDuration.minutes -10;
+		else _TimerDuration.minutes = 0;
+		_lcd_blinking_digit=HighMinute;
 	}
-	timeM->setTimerDuration(_TimerDuration);
+	_timeM->setTimerDuration(_TimerDuration);
 	#if LCD_SCREEN == true
-		LOG_I(TAG, "LCDScreen_Set_Timer from DecrementQuicklyDigit");
-		LCDScreen_Set_Timer(timeM, _blinking_digit);  
+		LOG_I(TAG, "LCDScreen_Set_Timer from DecrementQuicklyDigit - cursor on: %d", _lcd_blinking_digit);
+		LCDScreen_Set_Timer(_timeM, _lcd_blinking_digit);  
 	#endif	
 }
 
@@ -645,7 +653,7 @@ void PoolClockCmd::print_button_state(const char* button_name, Button_State_enum
  */
 void PoolClockCmd::updateUI()
 {
-	UIUpdateRequired = true;
+	_UIUpdateRequired = true;
 }
 
 /**
@@ -681,8 +689,8 @@ BLYNK_CONNECTED()
  */
 BLYNK_WRITE(BLYNK_CHANNEL_BRIGHTNESS_SLIDER)
 {
-	ClockS->clockBrightness = param[0].asInt();
-	ClockUI->PoolClockDisplays->setGlobalBrightness(ClockS->clockBrightness);
+	ClockS->_clockBrightness = param[0].asInt();
+	ClockUI->_PoolClockDisplays->setGlobalBrightness(ClockS->_clockBrightness);
 }
 
 /**
@@ -694,20 +702,20 @@ BLYNK_WRITE(BLYNK_CHANNEL_LIGHT_GROUP_SELECTOR)
 	switch (param.asInt())
 	{
 	case 1:
-		ClockUI->ColorSelection = PoolClockCmd::CHANGE_HOURS_COLOR;
-		Blynk.virtualWrite(BLYNK_CHANNEL_CURRENT_COLOR_PICKER, ClockUI->HourColor.r, ClockUI->HourColor.g, ClockUI->HourColor.b);
+		ClockUI->_ColorSelection = PoolClockCmd::CHANGE_HOURS_COLOR;
+		Blynk.virtualWrite(BLYNK_CHANNEL_CURRENT_COLOR_PICKER, ClockUI->_HourColor.r, ClockUI->_HourColor.g, ClockUI->_HourColor.b);
 		break;
 	case 2:
-		ClockUI->ColorSelection = PoolClockCmd::CHANGE_MINUTES_COLOR;
-		Blynk.virtualWrite(BLYNK_CHANNEL_CURRENT_COLOR_PICKER, ClockUI->MinuteColor.r, ClockUI->MinuteColor.g, ClockUI->MinuteColor.b);
+		ClockUI->_ColorSelection = PoolClockCmd::CHANGE_MINUTES_COLOR;
+		Blynk.virtualWrite(BLYNK_CHANNEL_CURRENT_COLOR_PICKER, ClockUI->_MinuteColor.r, ClockUI->_MinuteColor.g, ClockUI->_MinuteColor.b);
 		break;
 	case 3:
-		ClockUI->ColorSelection = PoolClockCmd::CHANGE_INTERIOR_COLOR;
-		Blynk.virtualWrite(BLYNK_CHANNEL_CURRENT_COLOR_PICKER, ClockUI->InternalColor.r, ClockUI->InternalColor.g, ClockUI->InternalColor.b);
+		ClockUI->_ColorSelection = PoolClockCmd::CHANGE_INTERIOR_COLOR;
+		Blynk.virtualWrite(BLYNK_CHANNEL_CURRENT_COLOR_PICKER, ClockUI->_InternalColor.r, ClockUI->_InternalColor.g, ClockUI->_InternalColor.b);
 		break;
 	case 4:
-		ClockUI->ColorSelection = PoolClockCmd::CHANGE_DOT_COLOR;
-		Blynk.virtualWrite(BLYNK_CHANNEL_CURRENT_COLOR_PICKER, ClockUI->DotColor.r, ClockUI->DotColor.g, ClockUI->DotColor.b);
+		ClockUI->_ColorSelection = PoolClockCmd::CHANGE_DOT_COLOR;
+		Blynk.virtualWrite(BLYNK_CHANNEL_CURRENT_COLOR_PICKER, ClockUI->_DotColor.r, ClockUI->_DotColor.g, ClockUI->_DotColor.b);
 		break;
 	}
 }
@@ -742,29 +750,29 @@ BLYNK_WRITE(BLYNK_CHANNEL_CURRENT_COLOR_PICKER)
 	currentColor.r  = param[0].asInt();
 	currentColor.g  = param[1].asInt();
 	currentColor.b  = param[2].asInt();
-	if(ClockUI->ColorSelection & PoolClockCmd::CHANGE_HOURS_COLOR)
+	if(ClockUI->_ColorSelection & PoolClockCmd::CHANGE_HOURS_COLOR)
 	{
-		ClockUI->PoolClockDisplays->setHourSegmentColors(currentColor);
+		ClockUI->_PoolClockDisplays->setHourSegmentColors(currentColor);
 		Blynk.virtualWrite(BLYNK_CHANNEL_HOUR_COLOR_SAVE, currentColor.r, currentColor.g, currentColor.b);
-		ClockUI->HourColor = currentColor;
+		ClockUI->_HourColor = currentColor;
 	}
-	if(ClockUI->ColorSelection & PoolClockCmd::CHANGE_MINUTES_COLOR)
+	if(ClockUI->_ColorSelection & PoolClockCmd::CHANGE_MINUTES_COLOR)
 	{
-		ClockUI->PoolClockDisplays->setMinuteSegmentColors(currentColor);
+		ClockUI->_PoolClockDisplays->setMinuteSegmentColors(currentColor);
 		Blynk.virtualWrite(BLYNK_CHANNEL_MINUTE_COLOR_SAVE, currentColor.r, currentColor.g, currentColor.b);
-		ClockUI->MinuteColor = currentColor;
+		ClockUI->_MinuteColor = currentColor;
 	}
-	if(ClockUI->ColorSelection & PoolClockCmd::CHANGE_INTERIOR_COLOR)
+	if(ClockUI->_ColorSelection & PoolClockCmd::CHANGE_INTERIOR_COLOR)
 	{
-		ClockUI->PoolClockDisplays->setInternalLEDColor(currentColor);
+		ClockUI->_PoolClockDisplays->setInternalLEDColor(currentColor);
 		Blynk.virtualWrite(BLYNK_CHANNEL_INTERNAL_COLOR_SAVE, currentColor.r, currentColor.g, currentColor.b);
-		ClockUI->InternalColor = currentColor;
+		ClockUI->_InternalColor = currentColor;
 	}
-	if(ClockUI->ColorSelection & PoolClockCmd::CHANGE_DOT_COLOR)
+	if(ClockUI->_ColorSelection & PoolClockCmd::CHANGE_DOT_COLOR)
 	{
-		ClockUI->PoolClockDisplays->setDotLEDColor(currentColor);
+		ClockUI->_PoolClockDisplays->setDotLEDColor(currentColor);
 		Blynk.virtualWrite(BLYNK_CHANNEL_DOT_COLOR_SAVE, currentColor.r, currentColor.g, currentColor.b);
-		ClockUI->DotColor = currentColor;
+		ClockUI->_DotColor = currentColor;
 	}
 }
 
@@ -779,8 +787,8 @@ BLYNK_WRITE(BLYNK_CHANNEL_HOUR_COLOR_SAVE)
 	SavedColor.r  = param[0].asInt();
 	SavedColor.g  = param[1].asInt();
 	SavedColor.b  = param[2].asInt();
-	ClockUI->PoolClockDisplays->setHourSegmentColors(SavedColor);
-	ClockUI->HourColor = SavedColor;
+	ClockUI->_PoolClockDisplays->setHourSegmentColors(SavedColor);
+	ClockUI->_HourColor = SavedColor;
 }
 
 /**
@@ -794,8 +802,8 @@ BLYNK_WRITE(BLYNK_CHANNEL_MINUTE_COLOR_SAVE)
 	SavedColor.r  = param[0].asInt();
 	SavedColor.g  = param[1].asInt();
 	SavedColor.b  = param[2].asInt();
-	ClockUI->PoolClockDisplays->setMinuteSegmentColors(SavedColor);
-	ClockUI->MinuteColor = SavedColor;
+	ClockUI->_PoolClockDisplays->setMinuteSegmentColors(SavedColor);
+	ClockUI->_MinuteColor = SavedColor;
 }
 
 /**
@@ -809,8 +817,8 @@ BLYNK_WRITE(BLYNK_CHANNEL_INTERNAL_COLOR_SAVE)
 	SavedColor.r  = param[0].asInt();
 	SavedColor.g  = param[1].asInt();
 	SavedColor.b  = param[2].asInt();
-	ClockUI->PoolClockDisplays->setInternalLEDColor(SavedColor);
-	ClockUI->InternalColor = SavedColor;
+	ClockUI->_PoolClockDisplays->setInternalLEDColor(SavedColor);
+	ClockUI->_InternalColor = SavedColor;
 }
 
 /**
@@ -824,8 +832,8 @@ BLYNK_WRITE(BLYNK_CHANNEL_DOT_COLOR_SAVE)
 	SavedColor.r  = param[0].asInt();
 	SavedColor.g  = param[1].asInt();
 	SavedColor.b  = param[2].asInt();
-	ClockUI->PoolClockDisplays->setDotLEDColor(SavedColor);
-	ClockUI->DotColor = SavedColor;
+	ClockUI->_PoolClockDisplays->setDotLEDColor(SavedColor);
+	ClockUI->_DotColor = SavedColor;
 }
 
 /**
@@ -860,7 +868,7 @@ BLYNK_WRITE(BLYNK_CHANNEL_TIMER_START_BUTTON)
 		TimeM->stopTimer();
 		LOG_I(TAG, "Timer Stopped");
 		Blynk.syncVirtual(BLYNK_CHANNEL_TIMER_TIME_INPUT);
-		ClockUI->PoolClockDisplays->setGlobalBrightness(ClockS->clockBrightness);
+		ClockUI->_PoolClockDisplays->setGlobalBrightness(ClockS->_clockBrightness);
 		ClockS->switchMode(ClockState::CLOCK_MODE);
 	}
 }
@@ -872,12 +880,12 @@ BLYNK_WRITE(BLYNK_CHANNEL_TIMER_START_BUTTON)
 BLYNK_WRITE(BLYNK_CHANNEL_NIGHT_MODE_TIME_INPUT)
 {
 	TimeInputParam t(param);
-	ClockS->NightModeStartTime.hours = t.getStartHour();
-	ClockS->NightModeStartTime.minutes = t.getStartMinute();
-	ClockS->NightModeStartTime.seconds = t.getStartSecond();
-	ClockS->NightModeStopTime.hours = t.getStopHour();
-	ClockS->NightModeStopTime.minutes = t.getStopMinute();
-	ClockS->NightModeStopTime.seconds = t.getStopSecond();
+	ClockS->_NightModeStartTime.hours = t.getStartHour();
+	ClockS->_NightModeStartTime.minutes = t.getStartMinute();
+	ClockS->_NightModeStartTime.seconds = t.getStartSecond();
+	ClockS->_NightModeStopTime.hours = t.getStopHour();
+	ClockS->_NightModeStopTime.minutes = t.getStopMinute();
+	ClockS->_NightModeStopTime.seconds = t.getStopSecond();
 }
 
 /**
@@ -886,10 +894,10 @@ BLYNK_WRITE(BLYNK_CHANNEL_NIGHT_MODE_TIME_INPUT)
  */
 BLYNK_WRITE(BLYNK_CHANNEL_NIGHT_MODE_BRIGHTNESS)
 {
-	ClockS->nightModeBrightness = param[0].asInt();
-	if(TimeM->isInBetween(ClockS->NightModeStartTime, ClockS->NightModeStopTime))
+	ClockS->_nightModeBrightness = param[0].asInt();
+	if(TimeM->isInBetween(ClockS->_NightModeStartTime, ClockS->_NightModeStopTime))
 	{
-		ClockUI->PoolClockDisplays->setGlobalBrightness(ClockS->nightModeBrightness);
+		ClockUI->_PoolClockDisplays->setGlobalBrightness(ClockS->_nightModeBrightness);
 	}
 }
 
@@ -899,7 +907,7 @@ BLYNK_WRITE(BLYNK_CHANNEL_NIGHT_MODE_BRIGHTNESS)
  */
 BLYNK_WRITE(BLYNK_CHANNEL_NUM_SEPARATION_DOTS)
 {
-	ClockS->numDots = param[0].asInt() - 1;
+	ClockS->_numDots = param[0].asInt() - 1;
 }
 
 /**
@@ -937,11 +945,11 @@ BLYNK_WRITE(BLYNK_CHANNEL_ALARM_START_BUTTON)
 		Blynk.setProperty(BLYNK_CHANNEL_ALARM_START_BUTTON, "onLabel", "Deactivate");
 		TimeM->clearAlarm();
 		Blynk.virtualWrite(BLYNK_CHANNEL_ALARM_START_BUTTON, 1);
-		ClockUI->isClearAction = true;
+		ClockUI->_isClearAction = true;
 	}
-	else if(ClockUI->isClearAction == true)
+	else if(ClockUI->_isClearAction == true)
 	{
-		ClockUI->isClearAction = false;
+		ClockUI->_isClearAction = false;
 	}
 	else
 	{

@@ -21,6 +21,10 @@ LCDManager::LCDManager(uint8_t Device_Addr, uint8_t Cols, uint8_t Rows) {
   for (int i=0; i < _columnNumber; i++) {
     _padding+=" ";
   }
+  _custom_chars.reserve(8);
+  for (int i=0; i<8; i++) {
+    _custom_chars[i]=255;
+  }
 }
 
 LCDManager::~LCDManager(){
@@ -28,16 +32,10 @@ LCDManager::~LCDManager(){
 }
 
 void LCDManager::initLCDManager () {
-
   _lcd->init();
   _lcd->clear();
   _lcd->display();
   _lcd->backlight();
-
-  // Create custom character
-  _lcd->createChar(CHAR_PLAY,  LCDPlayChar);
-  _lcd->createChar(CHAR_PAUSE, LCDPauseChar);
-  _lcd->createChar(CHAR_STOP,  LCDStopChar);
   _clearCache(); // reset the screen cache with blank strings
   _isInit=true;
 }
@@ -68,6 +66,16 @@ boolean             LCDManager::getDisplayState() {
 void LCDManager::init() {
   if (_isInit == false) { LOG_E(TAG, "LCD was not initialized. Take care of coredump !!!"); }
   _lcd->init();
+}
+void LCDManager::createChar(uint8_t location, const char *charmap) {
+  if (_isInit == false) { LOG_E(TAG, "LCD was not initialized. Take care of coredump !!!"); }
+  if (location < 0 || location > 7) { 
+    LOG_E(TAG, "Custom char must be included between 0 to 7 !!!");
+  }
+  else {
+    _lcd->createChar(location, charmap);
+    _custom_chars[location]= location;
+  }
 }
 void LCDManager::clear() {
   if (_isInit == false) { LOG_E(TAG, "LCD was not initialized. Take care of coredump !!!"); }
@@ -150,27 +158,16 @@ void LCDManager::_updateLCDRow(int row, std::string& line) {
 
     //for (int col = 0; col < _columnNumber && text[col] != '\0'; col++) {
     for (int col = 0; col < _columnNumber; col++) {
-        if (_cached_text[col] != text[col]) {
-          _lcd->setCursor(col, row);
-          switch (text[col]) {
-            case CHAR_PLAY  : _lcd->write(byte(CHAR_PLAY)) ; LOG_I(TAG, "write(byte(CHAR_PLAY) : %x", text[col]) ; break;
-            case CHAR_PAUSE : _lcd->write(byte(CHAR_PAUSE)); LOG_I(TAG, "write(byte(CHAR_PAUSE): %x", text[col]); break;
-            case CHAR_STOP  : _lcd->write(byte(CHAR_STOP)) ; LOG_I(TAG, "write(byte(CHAR_STOP) : %x", text[col]) ; break;
-            default:     _lcd->write(text[col]);
- 
-          }
-
-          /* _lcd->write(text[col]); */
-
-          //_new_cached_text[col] = text[col];
-          //LOG_D(TAG, "_updateLCDRow: _lcd->write '%c' at col: %d row: %d", _new_cached_text[col], col, row);
+      if (_cached_text[col] != text[col]) {
+        _lcd->setCursor(col, row);
+        if ( std::find(_custom_chars.begin(), _custom_chars.end(), text[col]) != _custom_chars.end() ) {
+          _lcd->write(byte(text[col])); //LOG_I(TAG, "write(byte(CHAR_PLAY) : %x", text[col]) ;
         }
-        //else {
-        //  _new_cached_text[col] = _cached_text[col];
-        //}
+        else {
+          _lcd->write(text[col]);
+        }
+      }
     }
-    //LOG_D(TAG, "_updateLCDRow: new cached Text     '%s'", _new_cached_text);
-
     _screenCache[row]=(line+_padding).substr(0, _columnNumber);
     LOG_D(TAG, "_updateLCDRow: _screenCache[row]   '%s'", _screenCache[row].c_str());
 }

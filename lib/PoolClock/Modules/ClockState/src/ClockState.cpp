@@ -9,66 +9,75 @@
 #include "ClockState.h"
 #include "LogManager.h"
 
-ClockState* ClockState::instance = nullptr;
+#if LCD_SCREEN == true
+	/**
+	 * \brief The PoolClock screens function declarations
+	*/
+	extern void LCDScreen_Clock_Mode(TimeManager* currentTime, float temperature1, float humidity1, float temperature2, float humidity2);
+	extern void LCDScreen_Timer_Mode(TimeManager* currentTimer, bool isTimerStarted);
+	extern void LCDScreen_Set_Timer (TimeManager* currentTimer, LCDScreen_BlinkingDigit digitCursor);
+#endif
+
+ClockState* ClockState::_instance = nullptr;
 
 ClockState::ClockState()
 {
-	MainState = CLOCK_MODE;
-	clockBrightness = DEFAULT_CLOCK_BRIGHTNESS;
-	alarmToggleCount = 0;
-	nightModeBrightness = DEFAULT_NIGHT_MODE_BRIGHTNESS;
-	numDots = NUM_SEPARATION_DOTS;
+	_MainState = CLOCK_MODE;
+	_clockBrightness = DEFAULT_CLOCK_BRIGHTNESS;
+	_alarmToggleCount = 0;
+	_nightModeBrightness = DEFAULT_NIGHT_MODE_BRIGHTNESS;
+	_numDots = NUM_SEPARATION_DOTS;
 
-	NightModeStartTime = TimeManager::TimeInfo {DEFAULT_NIGHT_MODE_START_HOUR, DEFAULT_NIGHT_MODE_START_MINUTE, 0};
-	NightModeStopTime = TimeManager::TimeInfo {DEFAULT_NIGHT_MODE_END_HOUR, DEFAULT_NIGHT_MODE_END_MINUTE, 0};
+	_NightModeStartTime = TimeManager::TimeInfo {DEFAULT_NIGHT_MODE_START_HOUR, DEFAULT_NIGHT_MODE_START_MINUTE, 0};
+	_NightModeStopTime = TimeManager::TimeInfo {DEFAULT_NIGHT_MODE_END_HOUR, DEFAULT_NIGHT_MODE_END_MINUTE, 0};
 
-	lastUpdateMillis = millis();
-	lastDotFlash = millis();
-	currentAlarmSignalState = false;
-	isinNightMode = false;
-	timeM = TimeManager::getInstance();
-	PoolClockDisplays = DisplayManager::getInstance();
+	_lastUpdateMillis = millis();
+	_lastDotFlash = millis();
+	_currentAlarmSignalState = false;
+	_isinNightMode = false;
+	_timeM = TimeManager::getInstance();
+	_PoolClockDisplays = DisplayManager::getInstance();
 #if AIR_TEMP_SENSOR == true
-	am232x = Sensor_AM232X::getInstance();
+	_am232x = Sensor_AM232X::getInstance();
 #endif
 #if WATER_TEMP_SENSOR == true
-	DS18B20Sensors = Sensor_DS18B20::getInstance();
+	_DS18B20Sensors = Sensor_DS18B20::getInstance();
 #endif
 }
 
 ClockState::~ClockState()
 {
-	instance = nullptr;
+	_instance = nullptr;
 }
 
 ClockState* ClockState::getInstance()
 {
-	if(instance == nullptr)
+	if(_instance == nullptr)
 	{
-		instance = new ClockState();
+		_instance = new ClockState();
 	}
-	return instance;
+	return _instance;
 }
 
 void ClockState::switchMode(ClockStates newState)
 {
     if(newState == ClockState::CLOCK_MODE)
     {
-        alarmToggleCount = 0;
+        _alarmToggleCount = 0;
     }
-	LOG_D(TAG, "ClockState::switchMode() ... From: %d To: %d", MainState, newState);
-    MainState = newState;
+	LOG_D(TAG, "ClockState::switchMode() ... From: %d To: %d", _MainState, newState);
+    _MainState = newState;
 }
 
 ClockState::ClockStates ClockState::getMode()
 {
-    return MainState;
+    return _MainState;
 }
 
 void ClockState::handleStates()
 {
 	LOG_V(TAG, "ClockState::handleStates() ... Start");
-	if(lastUpdateMillis + TIME_UPDATE_INTERVAL <= millis()) // update the display only in a certain interval
+	if(_lastUpdateMillis + TIME_UPDATE_INTERVAL <= millis()) // update the display only in a certain interval
 	{
 		// ========================
 		// Display of temperature
@@ -79,117 +88,117 @@ void ClockState::handleStates()
 		float humidity2=0.0;
 	
 		#if AIR_TEMP_SENSOR == true
-			am232x->handle();
-			temperature1=am232x->getTemperature();
-			humidity1=am232x->getHumidity();
+			_am232x->handle();
+			temperature1=_am232x->getTemperature();
+			humidity1=_am232x->getHumidity();
 		#endif
 		#if WATER_TEMP_SENSOR == true
-			temperature2=DS18B20Sensors->getPreciseTempCByAddress(waterThermometerAddress);
+			temperature2=_DS18B20Sensors->getPreciseTempCByAddress(waterThermometerAddress);
 		#endif
-		PoolClockDisplays->displayTemperature(temperature1, humidity1, temperature2, humidity2);
+		_PoolClockDisplays->displayTemperature(temperature1, humidity1, temperature2, humidity2);
 
 		// =================================
 		// Display of clock, timer or alarm
 		// =================================
-		lastUpdateMillis = millis();
+		_lastUpdateMillis = millis();
 		TimeManager::TimeInfo currentTime;
-		currentTime = timeM->getCurrentTime();
-		switch (MainState)
+		currentTime = _timeM->getCurrentTime();
+		switch (_MainState)
 		{
 		case ClockState::CLOCK_MODE:
 			#if USE_NIGHT_MODE == true
-				if(timeM->isInBetween(NightModeStartTime, NightModeStopTime))
+				if(_timeM->isInBetween(_NightModeStartTime, _NightModeStopTime))
 				{
-					if(isinNightMode == false)
+					if(_isinNightMode == false)
 					{
-						isinNightMode = true;
-						PoolClockDisplays->setGlobalBrightness(nightModeBrightness);
+						_isinNightMode = true;
+						_PoolClockDisplays->setGlobalBrightness(_nightModeBrightness);
 					}
 				}
 				else
 				{
-					if(isinNightMode == true)
+					if(_isinNightMode == true)
 					{
-						isinNightMode = false;
-						PoolClockDisplays->setGlobalBrightness(clockBrightness);
+						_isinNightMode = false;
+						_PoolClockDisplays->setGlobalBrightness(_clockBrightness);
 					}
 				}
 			#endif
 			LOG_D(TAG, "PoolClockDisplays->displayTime... %02d:%02d:%02d",currentTime.hours, currentTime.minutes, currentTime.seconds);
-			PoolClockDisplays->displayTime(currentTime.hours, currentTime.minutes);
+			_PoolClockDisplays->displayTime(currentTime.hours, currentTime.minutes);
 			#if DISPLAY_FOR_SEPARATION_DOT > -1
-				if(numDots > 0)
+				if(_numDots > 0)
 				{
-					if(lastDotFlash + DOT_FLASH_INTERVAL <= millis())
+					if(_lastDotFlash + DOT_FLASH_INTERVAL <= millis())
 					{
-						lastDotFlash = millis();
-						LOG_D(TAG, "PoolClockDisplays->flashSeparationDot... %d",numDots);
-						PoolClockDisplays->flashSeparationDot(numDots);
+						_lastDotFlash = millis();
+						LOG_D(TAG, "PoolClockDisplays->flashSeparationDot... %d",_numDots);
+						_PoolClockDisplays->flashSeparationDot(_numDots);
 						LOG_D(TAG, "PoolClockDisplays->flashSeparationDot...End");
 					}
 				}
 			#endif
 			#if LCD_SCREEN == true
-				LCDScreen_Clock_Mode(timeM, temperature1, humidity1, temperature2, humidity2);
+				LCDScreen_Clock_Mode(_timeM, temperature1, humidity1, temperature2, humidity2);
 			#endif
 		break;
 		case ClockState::TIMER_MODE:
-			currentTime = timeM->getRemainingTimerTime();
+			currentTime = _timeM->getRemainingTimerTime();
 			LOG_D(TAG, "PoolClockDisplays->displayTimer... %02d:%02d:%02d",currentTime.hours, currentTime.minutes, currentTime.seconds);
-			PoolClockDisplays->displayTimer(currentTime.hours, currentTime.minutes, currentTime.seconds);
+			_PoolClockDisplays->displayTimer(currentTime.hours, currentTime.minutes, currentTime.seconds);
 			#if LCD_SCREEN == true
-				LCDScreen_Timer_Mode(timeM, true);
+				LCDScreen_Timer_Mode(_timeM, true);
 			#endif
 		break;
 		case ClockState::SET_TIMER:
-			currentTime = timeM->getRemainingTimerTime();
+			currentTime = _timeM->getRemainingTimerTime();
 			LOG_D(TAG, "PoolClockDisplays->displaySetTimer... %02d:%02d:%02d",currentTime.hours, currentTime.minutes, currentTime.seconds);
-			PoolClockDisplays->displayTimer(currentTime.hours, currentTime.minutes, currentTime.seconds);
+			_PoolClockDisplays->displayTimer(currentTime.hours, currentTime.minutes, currentTime.seconds);
 			#if LCD_SCREEN == true
-				LOG_I(TAG, "ClockState from SET_TIMER");
-				LCDScreen_Set_Timer(timeM, LowMinute);  
+				LOG_D(TAG, "ClockState from SET_TIMER - cursor on: %d - address: %p", _lcd_blinking_digit, (void*)&_lcd_blinking_digit);
+				LCDScreen_Set_Timer(_timeM, _lcd_blinking_digit);  
 			#endif
 		break;
 		case ClockState::TIMER_NOTIFICATION:
-			if(currentAlarmSignalState == true)
+			if(_currentAlarmSignalState == true)
 			{
-				PoolClockDisplays->setGlobalBrightness(NOTIFICATION_BRIGHTNESS, false);
+				_PoolClockDisplays->setGlobalBrightness(NOTIFICATION_BRIGHTNESS, false);
 			}
 			else
 			{
-				PoolClockDisplays->setGlobalBrightness(0, false);
+				_PoolClockDisplays->setGlobalBrightness(0, false);
 			}
-			currentAlarmSignalState = !currentAlarmSignalState;
-			alarmToggleCount++;
+			_currentAlarmSignalState = !_currentAlarmSignalState;
+			_alarmToggleCount++;
 			#if TIMER_FLASH_TIME == true
-				PoolClockDisplays->displayTime(currentTime.hours, currentTime.minutes);
+				_PoolClockDisplays->displayTime(currentTime.hours, currentTime.minutes);
 			#else
-				PoolClockDisplays->displayTime(0, 0);
+				_PoolClockDisplays->displayTime(0, 0);
 			#endif
-			if(alarmToggleCount >= TIMER_FLASH_COUNT)
+			if(_alarmToggleCount >= TIMER_FLASH_COUNT)
 			{
-				PoolClockDisplays->setGlobalBrightness(clockBrightness);
-				PoolClockDisplays->displayTime(currentTime.hours, currentTime.minutes);
-				alarmToggleCount = 0;
-				MainState = ClockState::CLOCK_MODE;
+				_PoolClockDisplays->setGlobalBrightness(_clockBrightness);
+				_PoolClockDisplays->displayTime(currentTime.hours, currentTime.minutes);
+				_alarmToggleCount = 0;
+				_MainState = ClockState::CLOCK_MODE;
 			}
 		break;
 		case ClockState::ALARM_NOTIFICATION:
-			if(currentAlarmSignalState == true)
+			if(_currentAlarmSignalState == true)
 			{
-				PoolClockDisplays->setGlobalBrightness(NOTIFICATION_BRIGHTNESS, false);
+				_PoolClockDisplays->setGlobalBrightness(NOTIFICATION_BRIGHTNESS, false);
 			}
 			else
 			{
-				PoolClockDisplays->setGlobalBrightness(0, false);
+				_PoolClockDisplays->setGlobalBrightness(0, false);
 			}
-			currentAlarmSignalState = !currentAlarmSignalState;
+			_currentAlarmSignalState = !_currentAlarmSignalState;
 			LOG_I(TAG, "PoolClockDisplays->displayAlarm... %d:%d:%d",currentTime.hours, currentTime.minutes, currentTime.seconds);
-			PoolClockDisplays->displayTime(currentTime.hours, currentTime.minutes);
-			if(!timeM->isAlarmActive())
+			_PoolClockDisplays->displayTime(currentTime.hours, currentTime.minutes);
+			if(!_timeM->isAlarmActive())
 			{
-				PoolClockDisplays->setGlobalBrightness(clockBrightness);
-				MainState = ClockState::CLOCK_MODE;
+				_PoolClockDisplays->setGlobalBrightness(_clockBrightness);
+				_MainState = ClockState::CLOCK_MODE;
 			}
 		break;
 		default:

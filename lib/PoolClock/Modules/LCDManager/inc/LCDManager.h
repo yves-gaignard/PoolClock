@@ -12,15 +12,6 @@
 
 #include <LogManager.h>
 
-//static byte LCDPlayChar[]  = { B10000, B11000, B11100, B11110, B11110, B11100, B11000, B10000 };
-static uint8_t LCDPlayChar[8] = {B10000, B11000, B11100, B11110, B11110, B11100, B11000, B10000};
-static byte LCDPauseChar[] = { B01010, B01010, B01010, B01010, B01010, B01010, B01010, B01010 };
-static byte LCDStopChar[]  = { B00000, B00000, B01111, B01111, B01111, B01111, B00000, B00000 };
-
-#define CHAR_PLAY  1
-#define CHAR_PAUSE 2
-#define CHAR_STOP  3
-
 class LCDManager {
   private:
     LiquidCrystal_I2C*       _lcd;                         // LiquidCrystal_I2C handle 
@@ -37,7 +28,8 @@ class LCDManager {
     int                      _scrollVerticalDelay   = 250; // time in milliseconds between one row shift of the scroll
     int                      _scrollDisplayTime     = 10;  // number of seconds to display the row or the screen
     std::string              _padding;                     // string containing a blank line
-    std::vector<std::string> _screenCache;                // vector of strings. each string represent a line. The number of strings can be greater than the row number.
+    std::vector<uint8_t>     _custom_chars;                // vector of customized characters (8 maximum)
+    std::vector<std::string> _screenCache;                 // vector of strings. each string represent a line. The number of strings can be greater than the row number.
                                                            // if the scrollState == false, string vector index > max row will ignore 
 
 
@@ -65,6 +57,7 @@ class LCDManager {
 
     void initLCDManager ();
     void init();
+    void createChar(uint8_t location, const char *charmap);
     void clear();
     void home();
     void display();

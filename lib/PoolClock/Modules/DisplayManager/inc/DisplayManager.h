@@ -8,13 +8,13 @@
 #define __DISPLAY_MANAGER_H_
 
 #include <Arduino.h>
+#include "Configuration.h"
 #define FASTLED_INTERNAL
 #include "FastLED.h"
 #include "Animator.h"
 #include "Segment.h"
 #include "SevenSegment.h"
 #include "TimeManager.h"
-#include "Configuration.h"
 namespace AnimatorLinkedList {
 	#include "LinkedList.h"
 }

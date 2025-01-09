@@ -12,21 +12,21 @@
 class LCDScreens {
   public:
     LCDScreens(int inactivityMaxTime = 30, int duration = 5); // time in seconds
-    void   addScreen(std::string screenName);
-    void   addOrReplaceScreen(std::string screenName);
-    void   removeScreen(std::string screenName);
+    void   addLCDScreen(std::string screenName);
+    void   addOrReplaceLCDScreen(std::string screenName);
+    void   removeLCDScreen(std::string screenName);
     void   setInactivityMaxTime(int maxSeconds);
     void   setScreenSwitchTime(int seconds);
     void   setInactivityTimeOutReset();
-    void   setCurrentScreen(int screenIndex);
+    void   setCurrentLCDScreen(int screenIndex);
 
-    int    getScreenNumber();
-    int    getCurrentScreenIndex();
-    int    getScreenIndex(std::vector<std::string> screenName);
+    int    getLCDScreenNumber();
+    int    getCurrentLCDScreenIndex();
+    int    getLCDScreenIndex(std::vector<std::string> screenName);
     time_t getDisplayStart();
     int    getInactivityMaxTime();
-    int    getLastScreenStartTime();
-    int    getScreenSwitchTime();
+    int    getLastLCDScreenStartTime();
+    int    getLCDScreenSwitchTime();
 
   private:
     std::vector<std::string> _screenNames; // vector of screens names

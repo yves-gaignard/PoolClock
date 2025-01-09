@@ -15,6 +15,7 @@
 #include "FastLED.h"
 #include "ClockState.h"
 #include "EasyButton.h"
+#include "PoolClockCmd.h"
 
 /**
  * \addtogroup BlynkChannels
@@ -64,7 +65,7 @@ enum Timer_State_enum {STOPPED, STARTED, PAUSED};
 /**
 * \brief Time in ms during a push button needs to be pressed to consider it is a LONG press
 */
-#define LONG_PRESS_TIME 1000
+#define LONG_PRESS_TIME 500
 
 /**
  * \brief Loop function which is executed on the second core of the ESP
@@ -72,15 +73,6 @@ enum Timer_State_enum {STOPPED, STARTED, PAUSED};
  */
 void PoolClockCmdLoopCode(void* pvParameters);
 
-#if LCD_SCREEN == true
-	/**
-	 * \brief LCDScreen static functions
-	 *
-	 */
-	extern void LCDScreen_Clock_Mode(TimeManager* currentTime, float temperature1, float humidity1, float temperature2, float humidity2);
-	extern void LCDScreen_Timer_Mode(TimeManager* currentTimer, bool isTimerStarted);
-	extern void LCDScreen_Set_Timer (TimeManager* currentTimer, LCDScreen_TimeDigit digitCursor);
-#endif
 /**
  * @brief Button state variables
  * 
@@ -97,13 +89,13 @@ static Button_State_enum _Minus_button_state;
 class PoolClockCmd
 {
 private:
-	static PoolClockCmd* instance;
-	TaskHandle_t PoolClockCmdLoop;
+	static PoolClockCmd* _instance;
+	TaskHandle_t _PoolClockCmdLoop;
 	#if AIR_TEMP_SENSOR == true
-    	Sensor_AM232X* am232x;
+    	Sensor_AM232X* _am232x;
 	#endif
 	#if WATER_TEMP_SENSOR == true
-		Sensor_DS18B20* DS18B20Sensors;
+		Sensor_DS18B20* _DS18B20Sensors;
 	#endif
 
 	PoolClockCmd();
@@ -114,15 +106,15 @@ public:
 	 *
 	 */
 	enum ColorSelector {CHANGE_HOURS_COLOR = 0x01, CHANGE_MINUTES_COLOR = 0x02, CHANGE_INTERIOR_COLOR = 0x04, CHANGE_DOT_COLOR = 0x08};
-	uint8_t ColorSelection;
-	CRGB InternalColor;
-	CRGB HourColor;
-	CRGB MinuteColor;
-	CRGB DotColor;
-	bool UIUpdateRequired;
-	DisplayManager* PoolClockDisplays;
-	TimeManager*    timeM;
-	bool            isClearAction;
+	uint8_t _ColorSelection;
+	CRGB    _InternalColor;
+	CRGB    _HourColor;
+	CRGB    _MinuteColor;
+	CRGB    _DotColor;
+	bool    _UIUpdateRequired;
+	DisplayManager* _PoolClockDisplays;
+	TimeManager*    _timeM;
+	bool            _isClearAction;
 
 	EasyButton* _ModeButton;
 	EasyButton* _PlayButton;
@@ -142,10 +134,9 @@ public:
 	 * @brief Timer variables
 	 * 
 	 */
-	TimeManager::TimeInfo _TimerDuration;
-	Timer_Digit_enum      _CurrentTimerDigit;
-	Timer_State_enum      _TimerState;
-	LCDScreen_TimeDigit   _blinking_digit; 
+	TimeManager::TimeInfo   _TimerDuration;
+	Timer_Digit_enum        _CurrentTimerDigit;
+	Timer_State_enum        _TimerState;
 
 	~PoolClockCmd();
 	/**

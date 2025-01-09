@@ -21,8 +21,8 @@ const ProjectStructure Project {"Pool Clock", "1.0.0", "Yves Gaignard"};
 #include "Configuration.h"
 #include "LogManager.h"
 #include "DisplayManager.h"
+#include "PoolClockCmd.h"
 #include "ClockState.h"
-
 
 #if RUN_WITHOUT_WIFI == false
 	#include "WiFi.h"
@@ -68,6 +68,7 @@ const ProjectStructure Project {"Pool Clock", "1.0.0", "Yves Gaignard"};
 	void LCDScreen_Init(const ProjectStructure Project);
 	LCDManager lcd(LCD_ID, LCD_COLS, LCD_LINES);
 	LCDScreens screens;
+	LCDScreen_BlinkingDigit _lcd_blinking_digit = LowMinute;
 #endif
 
 DisplayManager* PoolClockDisplays = DisplayManager::getInstance();
@@ -174,6 +175,11 @@ void setup()
 	#if LCD_SCREEN == true
 		LOG_I(TAG, "LCDScreen initialization...");
 		lcd.initLCDManager();
+		// Create PoolClock custom character
+  		lcd.createChar(CHAR_PLAY,  LCDPlayChar);
+  		lcd.createChar(CHAR_PAUSE, LCDPauseChar);
+  		lcd.createChar(CHAR_STOP,  LCDStopChar);
+		// Print first screen
 	    LCDScreen_Init(Project);
 	#endif
 
@@ -758,8 +764,8 @@ void TimerDone()
 		screen.push_back("");	
 		screen.push_back(Project.Author);
 
-		screens.addScreen("Screen Init");
-		screens.setCurrentScreen(0);
+		screens.addLCDScreen("Screen Init");
+		screens.setCurrentLCDScreen(0);
 		screens.setInactivityTimeOutReset();
 
 		//lcd.init();
@@ -802,8 +808,8 @@ void TimerDone()
 		screen.push_back("Air  : T="+InAirTemp+degreeAsciiChar+" H="+InAirHum+"%");
 		screen.push_back("Water: T="+WaterTemp+degreeAsciiChar);
 
-		screens.addOrReplaceScreen("Screen Clock Mode");
-		screens.setCurrentScreen(1);
+		screens.addOrReplaceLCDScreen("Screen Clock Mode");
+		screens.setCurrentLCDScreen(1);
 
 		//lcd.clear();
 		//lcd.display();
@@ -830,10 +836,10 @@ void TimerDone()
 		|--------------------|
 		*/  
 
-
 		screen.clear();
 
         std::string currentTimerStr  = currentTimer->getCurrentTimerString(TimeManager::HourMinSecFormat).c_str();
+		LOG_I(TAG, "LCDScreen_Timer_Mode - currentTimer: %s - isTimerStarted: %s", currentTimerStr.c_str(), isTimerStarted ? "true" : "false");	
 
 		if (!isTimerStarted)
 		{
@@ -850,8 +856,8 @@ void TimerDone()
 			screen.push_back(std::string("    ")+std::string("\x03", 1)+std::string("  STOP"));	
 		}
 
-		screens.addOrReplaceScreen("Screen Timer Mode");
-		screens.setCurrentScreen(2);
+		screens.addOrReplaceLCDScreen("Screen Timer Mode");
+		screens.setCurrentLCDScreen(2);
 
 		//lcd.clear();
 		//lcd.display();
@@ -864,7 +870,7 @@ void TimerDone()
 	 * \brief The LCDScreen_Set_Timer function allows to display into the LCD, the set timer capability
 	 *        The blink digit represent where the blinking cursor is. 
 	 */
-	void LCDScreen_Set_Timer(TimeManager* currentTimer, LCDScreen_TimeDigit digitCursor)   
+	void LCDScreen_Set_Timer(TimeManager* currentTimer, LCDScreen_BlinkingDigit digitCursor)   
 	{
 		std::vector<std::string> screen;
 		/*
@@ -892,8 +898,8 @@ void TimerDone()
 		screen.push_back("+/- : Add/Decrease");	
 		screen.push_back(std::string("\x01", 1)+std::string(" : Next  Mode: OK"));	
 
-		screens.addOrReplaceScreen("Screen Set Timer");
-		screens.setCurrentScreen(3);
+		screens.addOrReplaceLCDScreen("Screen Set Timer");
+		screens.setCurrentLCDScreen(3);
 
 		//lcd.clear();
 		//lcd.display();
