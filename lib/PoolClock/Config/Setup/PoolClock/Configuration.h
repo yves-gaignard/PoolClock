@@ -17,6 +17,7 @@
 #include "LCDConfiguration.h"			// Configuration of the LCD screen
 #include "DisplayConfiguration.h"       // Configuration of the Display Manager Component
 #include "ClockStateConfiguration.h"    // Configuration of the Clock State Component
+#include "TimeManagerConfiguration.h"	// Configuration of the TimeManager composnents (Wifi, OTA, ...)
 #include "NetworkConfiguration.h"		// Configuration of the Network composnents (Wifi, OTA, ...)
 
 /**

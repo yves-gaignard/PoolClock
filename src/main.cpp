@@ -159,8 +159,7 @@ void setup()
 	Log.setTag("LCDManager"          , DEFAULT_LOG_LEVEL);
 	Log.setTag("LCDScreens"          , DEFAULT_LOG_LEVEL);
 	Log.setTag("LogManager"          , DEFAULT_LOG_LEVEL);
-	Log.setTag("PoolClockCmd"        , LOG_DEBUG);
-	Log.setTag("PoolClock_main"      , LOG_DEBUG);
+	Log.setTag("PoolClock_main"      , DEFAULT_LOG_LEVEL);
 	Log.setTag("Sensor_AM232X"       , DEFAULT_LOG_LEVEL);
 	Log.setTag("Sensor_DS18B20"      , DEFAULT_LOG_LEVEL);
 	Log.setTag("Sensor_HCSR501"      , DEFAULT_LOG_LEVEL);
@@ -489,6 +488,10 @@ void TaskStateMachine(void *pvParameters) {
 
 void AlarmTriggered()
 {
+	// ========================================================================================
+	// !!! ATTENTION !!! DON'T ADD ANY LOG IN THIS FUNCTION AS IT CAN BE CALLED IN A CALLBACK 
+	// ========================================================================================
+	LOG_I(TAG, "Alarm Triggered ....");
     states->switchMode(ALARM_NOTIFICATION);
 	#if IS_BLYNK_ACTIVE == true
 		BlynkConfiguration->updateUI();
@@ -497,6 +500,9 @@ void AlarmTriggered()
 
 void TimerTick()
 {
+	// ========================================================================================
+	// !!! ATTENTION !!! DON'T ADD ANY LOG IN THIS FUNCTION AS IT CAN BE CALLED IN A CALLBACK 
+	// ========================================================================================
 	#if IS_BLYNK_ACTIVE == true
 		BlynkConfiguration->updateUI();
 	#endif
@@ -504,6 +510,9 @@ void TimerTick()
 
 void TimerDone()
 {
+	// ========================================================================================
+	// !!! ATTENTION !!! DON'T ADD ANY LOG IN THIS FUNCTION AS IT CAN BE CALLED IN A CALLBACK 
+	// ========================================================================================
     states->switchMode(TIMER_NOTIFICATION);
 	#if IS_BLYNK_ACTIVE == true
 		BlynkConfiguration->updateUI();
@@ -788,7 +797,7 @@ void TimerDone()
 
         std::string currentTimeStr  = currentTime->getCurrentTimeString(TimeManager::HourMinSecFormat).c_str();
 		screen.push_back("Time : "+currentTimeStr);
-		LOG_I(TAG, "currentTimeStr: %s", currentTimeStr.c_str());
+		LOG_D(TAG, "currentTimeStr: %s", currentTimeStr.c_str());
 
 		std::string InAirTemp  = fct_ftoa(temperature1, "%3.1f");
 		std::string InAirHum   = fct_itoa((int) (humidity1 +0.5 - (humidity1<0)));
@@ -802,6 +811,7 @@ void TimerDone()
 		//lcd.clear();
 		//lcd.display();
 		//lcd.backlight();
+		lcd.noCursor();
 		lcd.noBlink();
 		lcd.printScreen(screen);
 	}
@@ -810,18 +820,18 @@ void TimerDone()
 	{
 		std::vector<std::string> screen;
 		std::string DisplayLine;
-		/*  
-		|--------------------|
-		|         1         2|
-		|12345678901234567890|
-		|--------------------|
-		|      SCREEN 2      |         alt+175 »   alt+186 ║   alt+242 ≥
-		|--------------------|
-		|    TIMER STOPPED   | or   |    TIMER RUNNING   |
-		|Remains: HH:MM:SS   |
-		|    >  START        | or 	|    ║  PAUSE        |       
-		| Mode  CANCEL       | or 	|    ■  STOP         |
-		|--------------------|
+		/*  alt+175 »   alt+186 ║   alt+242 ≥
+		|--------------------|      |--------------------|      |--------------------|      |--------------------|
+		|         1         2|      |         1         2|      |         1         2|      |         1         2|
+		|12345678901234567890|      |12345678901234567890|      |12345678901234567890|      |12345678901234567890|
+		|--------------------|      |--------------------|      |--------------------|      |--------------------|
+		|      SCREEN 2      |      |      SCREEN 2      |      |      SCREEN 2      |      |      SCREEN 2      |       
+		|--------------------|      |--------------------|      |--------------------|      |--------------------|
+		|   TIMER: STOPPED   |      |   TIMER: RUNNING   |      |   TIMER: PAUSED    |      |   TIMER: CANCELLED |
+		| Remains: HH:MM:SS  |      | Remains: HH:MM:SS  |      | Remains: HH:MM:SS  |      | Remains: HH:MM:SS  |
+		|   >  START / CANCEL|    	|   ║  PAUSE / CANCEL|    	|   > RESUME / CANCEL|    	|   >  RESTART       |
+		| Mode CLOCK / SET   |    	| Mode CLOCK / SET   |    	| Mode CLOCK / SET   |    	| Mode CLOCK / SET   |
+		|--------------------|      |--------------------|      |--------------------|      |--------------------|
 		*/  
 
         std::string currentTimerStr  = currentTimer->getCurrentTimerString(TimeManager::HourMinSecFormat).c_str();
@@ -834,25 +844,25 @@ void TimerDone()
 			case PAUSED   : timerStateStr = "PAUSED"   ; break;
 			case CANCELLED: timerStateStr = "CANCELLED"; break;
 		}
-		LOG_I(TAG, "LCDScreen_Timer_Mode - currentTimer: %s - State: %s", currentTimerStr.c_str(), timerStateStr.c_str());	
-		screen.push_back("    TIMER "+timerStateStr);
-		screen.push_back("Remains: "+currentTimerStr);
+		LOG_D(TAG, "LCDScreen_Timer_Mode - currentTimer: %s - State: %s", currentTimerStr.c_str(), timerStateStr.c_str());	
+		screen.push_back("   TIMER: "+timerStateStr);
+		screen.push_back(" Remains: "+currentTimerStr);
 
 		switch (timerState) {
 			case STOPPED: 
-				screen.push_back(std::string("    ")+std::string("\x01", 1)+std::string("  START"));	
-			break;
-			case PAUSED : 
-				screen.push_back(std::string("    ")+std::string("\x01", 1)+std::string("  RESUME"));	
+				screen.push_back(std::string("   ")+std::string("\x01", 1)+std::string("  START / CANCEL"));	
 			break;
 			case RUNNING: 
-				screen.push_back(std::string("    ")+std::string("\x02", 1)+std::string("  PAUSE"));
+				screen.push_back(std::string("   ")+std::string("\x02", 1)+std::string("  PAUSE / CANCEL"));
+			break;
+			case PAUSED : 
+				screen.push_back(std::string("   ")+std::string("\x01", 1)+std::string(" RESUME / CANCEL"));	
 			break;
 			case CANCELLED: 
-				screen.push_back(std::string("    ")+std::string("\x01", 1)+std::string("  RESTART"));
+				screen.push_back(std::string("   ")+std::string("\x01", 1)+std::string("  RESTART"));
 			break;
 		}
-		screen.push_back(" Mode  CANCEL");	
+		screen.push_back(" Mode CLOCK / SET");	
 
 		screens.addOrReplaceLCDScreen("Screen Timer Mode");
 		screens.setCurrentLCDScreen(2);
@@ -860,6 +870,7 @@ void TimerDone()
 		//lcd.clear();
 		//lcd.display();
 		//lcd.backlight();
+		lcd.noCursor();
 		lcd.noBlink();
 		lcd.printScreen(screen);
 	}
@@ -880,21 +891,21 @@ void TimerDone()
 		|--------------------|
 		|      SET TIMER     |
 		|Duration: HH:MM:SS  |
-		|+/- : Add/Decrease  |
-		|> : Next   Mode: OK |
+		| +/- | > Next digit |
+		| Mode: VALID / CLOCK|
 		|--------------------|
 		*/
 
 		std::string currentTimerStr  = currentTimer->getCurrentTimerString(TimeManager::HourMinSecFormat).c_str();
-		LOG_I(TAG, "set Time : currentTimeStr: %s  digit cursor: %d", currentTimerStr.c_str(), digitCursor);
+		LOG_D(TAG, "set Time : currentTimeStr: %s  digit cursor: %d", currentTimerStr.c_str(), digitCursor);
 		
 		screen.clear();
 		screen.push_back("      SET TIMER");
 
         screen.push_back("Duration: "+currentTimerStr);
 
-		screen.push_back("+/- : Add/Decrease");	
-		screen.push_back(std::string("\x01", 1)+std::string(" : Next  Mode: OK"));	
+		screen.push_back(" +/- | "+std::string("\x01", 1)+" Next digit");	
+		screen.push_back(" Mode: VALID / CLOCK");	
 
 		screens.addOrReplaceLCDScreen("Screen Set Timer");
 		screens.setCurrentLCDScreen(3);

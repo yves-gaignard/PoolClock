@@ -53,10 +53,10 @@ ClockState::ClockState()
 	_ColorSelection    = CHANGE_HOURS_COLOR;
 	_UIUpdateRequired  = false;
 
-	_ModeButton = new EasyButton(BUTTON_MODE_PIN ,   30U, false, false);
-	_PlusButton = new EasyButton(BUTTON_PLUS_PIN ,   30U, false, false);
-	_PlayButton = new EasyButton(BUTTON_PLAY_PIN ,   30U, false, false);
-	_MinusButton= new EasyButton(BUTTON_MINUS_PIN,   30U, false, false);
+	_ModeButton = new EasyButton(BUTTON_MODE_PIN ,   30U, true, false);
+	_PlusButton = new EasyButton(BUTTON_PLUS_PIN ,   30U, true, false);
+	_PlayButton = new EasyButton(BUTTON_PLAY_PIN ,   30U, true, false);
+	_MinusButton= new EasyButton(BUTTON_MINUS_PIN,   30U, true, false);
 
 	_Mode_button_state  = NOT_PRESSED;
 	_Play_button_state  = NOT_PRESSED;
@@ -80,11 +80,13 @@ ClockState* ClockState::getInstance()
 
 void ClockState::switchMode(ClockStates newState)
 {
+	// ========================================================================================
+	// !!! ATTENTION !!! DON'T ADD ANY LOG IN THIS FUNCTION AS IT CAN BE CALLED IN A CALLBACK 
+	// ========================================================================================
     if(newState == CLOCK_MODE)
     {
         _alarmToggleCount = 0;
     }
-	LOG_D(TAG, "ClockState::switchMode() ... From: %d To: %d", _current_state, newState);
 	_previous_state= _current_state;
     _current_state = newState;
 }
@@ -175,7 +177,7 @@ void ClockState::handleStates()
 			LOG_D(TAG, "PoolClockDisplays->displaySetTimer... %02d:%02d:%02d",currentTime.hours, currentTime.minutes, currentTime.seconds);
 			_PoolClockDisplays->displayTimer(currentTime.hours, currentTime.minutes, currentTime.seconds);
 			#if LCD_SCREEN == true
-				LOG_D(TAG, "ClockState from SET_TIMER - cursor on: %d - address: %p", _lcd_blinking_digit, (void*)&_lcd_blinking_digit);
+				LOG_D(TAG, "ClockState from SET_TIMER - cursor on: %d", _lcd_blinking_digit);
 				LCDScreen_Set_Timer(_timeM, _lcd_blinking_digit);  
 			#endif
 		break;
@@ -214,7 +216,7 @@ void ClockState::handleStates()
 				_PoolClockDisplays->setGlobalBrightness(0, false);
 			}
 			_currentAlarmSignalState = !_currentAlarmSignalState;
-			LOG_I(TAG, "PoolClockDisplays->displayAlarm... %d:%d:%d",currentTime.hours, currentTime.minutes, currentTime.seconds);
+			LOG_D(TAG, "PoolClockDisplays->displayAlarm... %d:%d:%d",currentTime.hours, currentTime.minutes, currentTime.seconds);
 			_PoolClockDisplays->displayTime(currentTime.hours, currentTime.minutes);
 			if(!_timeM->isAlarmActive())
 			{
@@ -280,15 +282,17 @@ void ClockState::changeSelection(ColorSelector selector, bool state)
 void ClockState::ClockStateLoopCode(void* pvParameters)
 {
 	Transitions_enum transition;
-	LOG_I(TAG, "Loop task running on core %d", xPortGetCoreID());
+	LOG_D(TAG, "Loop task running on core %d", xPortGetCoreID());
 	ClockState* ClockS = ClockState::getInstance();
 	esp_task_wdt_init(30, false);
+	ClockS->read_buttons();
 	for(;;)
 	{
+		LOG_V(TAG, "ClockStateLoopCode");
 		transition = ClockS->read_buttons();
 		if ( transition != NONE && ClockS->_last_transition == NONE) {
 			ClockS->_last_transition = transition;
-			LOG_I(TAG, "Set _last_transition to: %d", transition);
+			LOG_D(TAG, "Set _last_transition to: %d", transition);
 		}
 	    //state_machine_run(transition);
  
@@ -319,7 +323,6 @@ void ClockState::ClockStateLoopCode(void* pvParameters)
 	}
 }
 
-
 /**
  * \brief Initialize buttons and start the separate thread on the second core
  *
@@ -338,9 +341,11 @@ void ClockState::setup()
 	_last_transition= NONE;
 
 	// Default Timer Duration
-	_TimerDuration.hours   = 0;
-	_TimerDuration.minutes = 0;
-	_TimerDuration.seconds = 0;
+	_TimerDuration.hours   = TIMER_DEFAULT_HOUR;
+	_TimerDuration.minutes = TIMER_DEFAULT_MINUTE;
+	_TimerDuration.seconds = TIMER_DEFAULT_SECOND;
+
+	_InitialTimerDuration = _TimerDuration;
 
 	// Default Timer State
 	_TimerState = STOPPED;
@@ -365,7 +370,7 @@ void ClockState::setup()
     _MinusButton->onPressed(ClockState::Minus_onPressed);
     _MinusButton->onPressedFor(LONG_PRESS_TIME, ClockState::Minus_onPressedForDuration);
 
-	LOG_I(TAG, "Starting ClockStateLoopCode on core 0...");
+	LOG_D(TAG, "Starting ClockStateLoopCode on core 0...");
 	//Setup the loop task on the second core
 	xTaskCreatePinnedToCore(
 	ClockStateLoopCode,	    // Task function.
@@ -381,7 +386,7 @@ void ClockState::setup()
  * \brief Callback to manage Mode button action in case of short press
  */
 void ClockState::Mode_onPressed() {
-    LOG_I(TAG, "Mode button has been pressed!");
+    LOG_D(TAG, "Mode button has been pressed!");
     _Mode_button_state = PRESSED;
 }
 
@@ -389,35 +394,35 @@ void ClockState::Mode_onPressed() {
  * \brief Callback to manage Mode button action in case of long press
  */
 void ClockState::Mode_onPressedForDuration() {
-    LOG_I(TAG, "Mode button has been pressed for the given duration!");
+    LOG_D(TAG, "Mode button has been pressed for the given duration!");
     _Mode_button_state = LONG_PRESSED;
 }
 
 void ClockState::Play_onPressed() {
-    LOG_I(TAG, "Play button has been pressed!");
+    LOG_D(TAG, "Play button has been pressed!");
     _Play_button_state = PRESSED;
 }
 
 void ClockState::Play_onPressedForDuration() {
-    LOG_I(TAG, "Play button has been pressed for the given duration!");
+    LOG_D(TAG, "Play button has been pressed for the given duration!");
     _Play_button_state = LONG_PRESSED;
 }
 void ClockState::Plus_onPressed() {
-    LOG_I(TAG, "Plus button has been pressed!");
+    LOG_D(TAG, "Plus button has been pressed!");
     _Plus_button_state = PRESSED;
 }
 
 void ClockState::Plus_onPressedForDuration() {
-    LOG_I(TAG, "Plus button has been pressed for the given duration!");
+    LOG_D(TAG, "Plus button has been pressed for the given duration!");
     _Plus_button_state = LONG_PRESSED;
 }
 void ClockState::Minus_onPressed() {
-    LOG_I(TAG, "Minus button has been pressed!");
+    LOG_D(TAG, "Minus button has been pressed!");
     _Minus_button_state = PRESSED;
 }
 
 void ClockState::Minus_onPressedForDuration() {
-    LOG_I(TAG, "Minus button has been pressed for the given duration!");
+    LOG_D(TAG, "Minus button has been pressed for the given duration!");
     _Minus_button_state = LONG_PRESSED;
 }
 
@@ -428,18 +433,18 @@ void ClockState::Minus_onPressedForDuration() {
  */
 void ClockState::state_machine_run(Transitions_enum transition) 
 {
-	LOG_I(TAG, "ClockState::state_machine_run - Transition: %d",transition);
+	LOG_D(TAG, "ClockState::state_machine_run - Transition: %d",transition);
     switch(transition)
     {
         case NONE:              LOG_V(TAG, "buttons = NONE");               break;
-        case MODE:              LOG_I(TAG, "buttons = MODE");               break;
-        case LONG_MODE:         LOG_I(TAG, "buttons = LONG_MODE");          break;
-        case PLAY:              LOG_I(TAG, "buttons = PLAY");               break;
-        case LONG_PLAY:         LOG_I(TAG, "buttons = LONG_PLAY");          break;
-        case PLUS:              LOG_I(TAG, "buttons = PLUS");               break;
-        case LONG_PLUS:         LOG_I(TAG, "buttons = LONG_PLUS");          break;
-        case MINUS:             LOG_I(TAG, "buttons = MINUS");              break;
-        case LONG_MINUS:        LOG_I(TAG, "buttons = LONG_MINUS");         break;
+        case MODE:              LOG_D(TAG, "buttons = MODE");               break;
+        case LONG_MODE:         LOG_D(TAG, "buttons = LONG_MODE");          break;
+        case PLAY:              LOG_D(TAG, "buttons = PLAY");               break;
+        case LONG_PLAY:         LOG_D(TAG, "buttons = LONG_PLAY");          break;
+        case PLUS:              LOG_D(TAG, "buttons = PLUS");               break;
+        case LONG_PLUS:         LOG_D(TAG, "buttons = LONG_PLUS");          break;
+        case MINUS:             LOG_D(TAG, "buttons = MINUS");              break;
+        case LONG_MINUS:        LOG_D(TAG, "buttons = LONG_MINUS");         break;
     }
     
     switch(_current_state)
@@ -528,9 +533,9 @@ void ClockState::state_machine_run(Transitions_enum transition)
         {
             switch(_current_state)
             {
-                case CLOCK_MODE: LOG_I(TAG, "New current state = CLOCK_MODE"); break;
-                case TIMER_MODE: LOG_I(TAG, "New current state = TIMER_MODE"); break;
-                case SET_TIMER:  LOG_I(TAG, "New current state = SET_TIMER");  break;
+                case CLOCK_MODE: LOG_D(TAG, "New current state = CLOCK_MODE"); break;
+                case TIMER_MODE: LOG_D(TAG, "New current state = TIMER_MODE"); break;
+                case SET_TIMER:  LOG_D(TAG, "New current state = SET_TIMER");  break;
             }
         }
     }
@@ -543,9 +548,10 @@ void ClockState::NOPE()
 
 void ClockState::ChgModeToTimer()
 {
-    LOG_I(TAG, "Action: Change Mode To Timer");
+    LOG_D(TAG, "Action: Change Mode To Timer");
 	_PoolClockDisplays->setGlobalBrightness(_clockBrightness);
 	switchMode(TIMER_MODE);
+	_timeM->setTimerDuration(_TimerDuration);
 	_TimerState = STOPPED;
 	#if LCD_SCREEN == true
 		LCDScreen_Timer_Mode(_timeM, _TimerState);
@@ -554,14 +560,15 @@ void ClockState::ChgModeToTimer()
 
 void ClockState::ChgModeToSetTimer()
 {
-    LOG_I(TAG, "Action: Change Mode To Set Timer");
+    LOG_D(TAG, "Action: Change Mode To Set Timer");
+	_timeM->stopTimer();
 	_PoolClockDisplays->setGlobalBrightness(_clockBrightness);
 	switchMode(SET_TIMER);
 	_timeM->setTimerDuration(_TimerDuration);
 	_CurrentTimerDigit = MINUTE_DIGIT;
 	_lcd_blinking_digit = LowMinute;
 	#if LCD_SCREEN == true
-		LOG_I(TAG, "LCDScreen_Set_Timer from ChgModeToSetTimer - cursor on: %d", _lcd_blinking_digit);
+		LOG_D(TAG, "LCDScreen_Set_Timer from ChgModeToSetTimer - cursor on: %d", _lcd_blinking_digit);
 		LCDScreen_Set_Timer(_timeM, _lcd_blinking_digit);  
 	#endif	
 
@@ -569,7 +576,7 @@ void ClockState::ChgModeToSetTimer()
 
 void ClockState::ChgModeToClock()
 {
-    LOG_I(TAG, "Action: Change Mode To Clock");
+    LOG_D(TAG, "Action: Change Mode To Clock");
 	_PoolClockDisplays->setGlobalBrightness(_clockBrightness);
 	switchMode(CLOCK_MODE);
 	float temperature1=0.0;
@@ -590,29 +597,29 @@ void ClockState::ChgModeToClock()
 
 void ClockState::StartPauseResumeTimer()
 {
-    LOG_I(TAG, "Action: Start Pause Resume Timer");
+    LOG_D(TAG, "Action: Start Pause Resume Timer");
 	if (_TimerState == STOPPED)
 	{
 		_timeM->startTimer();
-		LOG_I(TAG, "Timer Started");
+		LOG_D(TAG, "Timer Started");
 		_TimerState = RUNNING;
 	}
 	else if (_TimerState == RUNNING)
 	{
 		_timeM->stopTimer();
-		LOG_I(TAG, "Timer Paused");
+		LOG_D(TAG, "Timer Paused");
 		_TimerState = PAUSED;
 	}
 	else if (_TimerState == PAUSED)
 	{
 		_timeM->startTimer();
-		LOG_I(TAG, "Timer Resumed");
+		LOG_D(TAG, "Timer Resumed");
 		_TimerState = RUNNING;
 	}
 	else if (_TimerState == CANCELLED)
 	{
 		_timeM->startTimer();
-		LOG_I(TAG, "Timer Restarted");
+		LOG_D(TAG, "Timer Restarted");
 		_TimerState = RUNNING;
 	}
 	#if LCD_SCREEN == true
@@ -622,9 +629,11 @@ void ClockState::StartPauseResumeTimer()
 
 void ClockState::CancelTimer()
 {
-    LOG_I(TAG, "Action: Cancel Timer");
-	_timeM->disableTimer();
-	LOG_I(TAG, "Timer Cancelled");
+    LOG_D(TAG, "Action: Cancel Timer");
+	_timeM->stopTimer();
+	_TimerDuration = _InitialTimerDuration;
+	_timeM->setTimerDuration(_TimerDuration);
+	LOG_D(TAG, "Timer Cancelled");
 	_TimerState = CANCELLED;
 	#if LCD_SCREEN == true
 		LCDScreen_Timer_Mode(_timeM, _TimerState);
@@ -633,7 +642,7 @@ void ClockState::CancelTimer()
 
 void ClockState::CancelSetTimer()
 {
-    LOG_I(TAG, "Action: Cancel Set Timer");
+    LOG_D(TAG, "Action: Cancel Set Timer");
 	_TimerDuration.hours   = 0;
 	_TimerDuration.minutes = 0;
 	_TimerDuration.seconds = 0;
@@ -645,9 +654,11 @@ void ClockState::CancelSetTimer()
 
 void ClockState::ValidateSetTimer()
 {
-    LOG_I(TAG, "Action: Validate Set Timer");
+    LOG_D(TAG, "Action: Validate Set Timer");
 	LOG_D(TAG, "Timer Duration: %d:%d:%d", _TimerDuration.hours, _TimerDuration.minutes, _TimerDuration.seconds);
 	_timeM->setTimerDuration(_TimerDuration);
+	_InitialTimerDuration = _TimerDuration;
+	_TimerState = STOPPED;
 	#if LCD_SCREEN == true
 		LCDScreen_Timer_Mode(_timeM, _TimerState);
 	#endif	
@@ -658,13 +669,13 @@ void ClockState::MoveNextDigit()
 	if (_CurrentTimerDigit == HOUR_DIGIT) 
 	{
 		_CurrentTimerDigit = MINUTE_DIGIT;
-	    LOG_I(TAG, "Action: Move Digit to MINUTES");
+	    LOG_D(TAG, "Action: Move Digit to MINUTES");
 		_lcd_blinking_digit=LowMinute;
 	}
 	else
 	{
 		_CurrentTimerDigit = HOUR_DIGIT;
-	    LOG_I(TAG, "Action: Move Digit to HOURS");
+	    LOG_D(TAG, "Action: Move Digit to HOURS");
 		_lcd_blinking_digit=LowHour;
 	}
 	_timeM->setTimerDuration(_TimerDuration);
@@ -676,7 +687,7 @@ void ClockState::MoveNextDigit()
 
 void ClockState::IncrementDigit()
 {
-    LOG_I(TAG, "Action: Increment Digit");
+    LOG_D(TAG, "Action: Increment Digit");
 	if (_CurrentTimerDigit == HOUR_DIGIT)  {
 		_TimerDuration.hours++;
 		if (_TimerDuration.hours >= 24) _TimerDuration.hours = 0;
@@ -689,14 +700,14 @@ void ClockState::IncrementDigit()
 	}
 	_timeM->setTimerDuration(_TimerDuration);
 	#if LCD_SCREEN == true
-		LOG_I(TAG, "LCDScreen_Set_Timer from IncrementDigit - cursor on: %d", _lcd_blinking_digit);
+		LOG_D(TAG, "LCDScreen_Set_Timer from IncrementDigit - cursor on: %d", _lcd_blinking_digit);
 		LCDScreen_Set_Timer(_timeM, _lcd_blinking_digit);  
 	#endif	
 }
 
 void ClockState::IncrementQuicklyDigit()
 {
-    LOG_I(TAG, "Action: Increment Quickly Digit");
+    LOG_D(TAG, "Action: Increment Quickly Digit");
 		if (_CurrentTimerDigit == HOUR_DIGIT)  {
 		_TimerDuration.hours = _TimerDuration.hours + 10;
 		if (_TimerDuration.hours >= 24) _TimerDuration.hours = 0;
@@ -709,14 +720,14 @@ void ClockState::IncrementQuicklyDigit()
 	}
 	_timeM->setTimerDuration(_TimerDuration);
 	#if LCD_SCREEN == true
-		LOG_I(TAG, "LCDScreen_Set_Timer from IncrementQuicklyDigit - cursor on: %d", _lcd_blinking_digit);
+		LOG_D(TAG, "LCDScreen_Set_Timer from IncrementQuicklyDigit - cursor on: %d", _lcd_blinking_digit);
 		LCDScreen_Set_Timer(_timeM, _lcd_blinking_digit);  
 	#endif	
 }
 
 void ClockState::DecrementDigit()
 {
-    LOG_I(TAG, "Action: Decrement Digit");
+    LOG_D(TAG, "Action: Decrement Digit");
 	if (_CurrentTimerDigit == HOUR_DIGIT)  {
 		if (_TimerDuration.hours > 0) _TimerDuration.hours--;
 		_lcd_blinking_digit=LowHour;
@@ -727,14 +738,14 @@ void ClockState::DecrementDigit()
 	}
 	_timeM->setTimerDuration(_TimerDuration);
 	#if LCD_SCREEN == true
-		LOG_I(TAG, "LCDScreen_Set_Timer from DecrementDigit - cursor on: %d", _lcd_blinking_digit);
+		LOG_D(TAG, "LCDScreen_Set_Timer from DecrementDigit - cursor on: %d", _lcd_blinking_digit);
 		LCDScreen_Set_Timer(_timeM, _lcd_blinking_digit);  
 	#endif	
 }
 
 void ClockState::DecrementQuicklyDigit()
 {
-    LOG_I(TAG, "Action: Decrement Quickly Digit");
+    LOG_D(TAG, "Action: Decrement Quickly Digit");
 	if (_CurrentTimerDigit == HOUR_DIGIT)  {
 		if (_TimerDuration.hours >= 10) _TimerDuration.hours = _TimerDuration.hours -10;
 		else _TimerDuration.hours = 0;
@@ -747,14 +758,14 @@ void ClockState::DecrementQuicklyDigit()
 	}
 	_timeM->setTimerDuration(_TimerDuration);
 	#if LCD_SCREEN == true
-		LOG_I(TAG, "LCDScreen_Set_Timer from DecrementQuicklyDigit - cursor on: %d", _lcd_blinking_digit);
+		LOG_D(TAG, "LCDScreen_Set_Timer from DecrementQuicklyDigit - cursor on: %d", _lcd_blinking_digit);
 		LCDScreen_Set_Timer(_timeM, _lcd_blinking_digit);  
 	#endif	
 }
 
 Transitions_enum ClockState::read_buttons()
 {
-    //code for reading both buttons
+    //code for reading buttons
     _ModeButton->read();
 	_PlayButton->read();
 	_PlusButton->read();
@@ -795,8 +806,8 @@ void ClockState::print_button_state(const char* button_name, Button_State_enum b
     switch(button_state)
     {
         case NOT_PRESSED:          LOG_V(TAG, "button = %s   status= %s", button_name, state_not_pressed);          break;
-        case PRESSED:              LOG_I(TAG, "button = %s - status= %s", button_name, state_pressed);              break;
-        case LONG_PRESSED:         LOG_I(TAG, "button = %s - status= %s", button_name, state_long_pressed);         break;
+        case PRESSED:              LOG_D(TAG, "button = %s - status= %s", button_name, state_pressed);              break;
+        case LONG_PRESSED:         LOG_D(TAG, "button = %s - status= %s", button_name, state_long_pressed);         break;
     }
 #endif
 }
@@ -1016,13 +1027,13 @@ BLYNK_WRITE(BLYNK_CHANNEL_TIMER_START_BUTTON)
 	if(param[0].asInt() == 1)
 	{
 		TimeM->startTimer();
-		LOG_I(TAG, "Timer Started");
+		LOG_D(TAG, "Timer Started");
 		ClockS->switchMode(ClockState::TIMER_MODE);
 	}
 	else
 	{
 		TimeM->stopTimer();
-		LOG_I(TAG, "Timer Stopped");
+		LOG_D(TAG, "Timer Stopped");
 		Blynk.syncVirtual(BLYNK_CHANNEL_TIMER_TIME_INPUT);
 		_PoolClockDisplays->setGlobalBrightness(ClockS->_clockBrightness);
 		ClockS->switchMode(ClockState::CLOCK_MODE);

@@ -9,6 +9,13 @@
 #define _CLOCKSTATE_CONFIGURATION_H_
 
 /**
+ * \brief Timer default Value
+ */
+#define TIMER_DEFAULT_HOUR     0
+#define TIMER_DEFAULT_MINUTE  30
+#define TIMER_DEFAULT_SECOND   0
+
+/**
  * \brief Flash the current time in case a timer is expired instead of flashing 00:00
  */
 #define TIMER_FLASH_TIME false
@@ -17,11 +24,6 @@
  * \brief Number of flashes until an alarm is considered complete and the system goes back to normal
  */
 #define TIMER_FLASH_COUNT 10
-
-/**
- * \brief For how long the Display should flash when an alarm was fired in seconds
- */
-#define ALARM_NOTIFICATION_PERIOD 600
 
 /**
  * \brief How bright the clock should blink when an alarm or timer was triggered

@@ -8,7 +8,7 @@
 #include "TimeManager.h"
 #include "LogManager.h"
 
-TimeManager* TimeManager::TimeManagerSingelton = nullptr;
+TimeManager* TimeManager::TimeManagerSingleton = nullptr;
 
 void IRAM_ATTR onTimer();
 
@@ -38,16 +38,16 @@ TimeManager::TimeManager()
 TimeManager::~TimeManager()
 {
 	disableTimer();
-	TimeManagerSingelton = nullptr;
+	TimeManagerSingleton = nullptr;
 }
 
 TimeManager* TimeManager::getInstance()
 {
-	if(TimeManagerSingelton == nullptr)
+	if(TimeManagerSingleton == nullptr)
 	{
-		TimeManagerSingelton = new TimeManager();
+		TimeManagerSingleton = new TimeManager();
 	}
-	return TimeManagerSingelton;
+	return TimeManagerSingleton;
 }
 
 bool TimeManager::init()

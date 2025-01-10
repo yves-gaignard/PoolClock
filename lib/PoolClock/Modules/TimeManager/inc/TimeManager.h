@@ -1,7 +1,9 @@
 /**
  * \file TimeManager.h
  * \author Yves Gaignard
- * \brief Class deinition for the Time manager
+ * \brief Class definition for the Time manager
+ *        The TimeManager is responsible for synchronizing the time to the NTP servers and keeping track of it
+ * 		  offline if the WIFI connection was lost. Also manages alarms and timers
  */
 
 #ifndef __TIME_MANAGER_H_
@@ -9,15 +11,12 @@
 
 #include <Arduino.h>
 #include "time.h"
-#include "Configuration.h"
+#include "TimeManagerConfiguration.h"
 #if RUN_WITHOUT_WIFI == false
 	#include "WiFi.h"
 #endif
 
-/**
- * \brief The TimeManager is responsible for synchronizing the time to the NTP servers and keeping track of it
- * 		  offline if the WIFI connection was lost. Also manages alarms and timers
- */
+
 class TimeManager
 {
 	friend void IRAM_ATTR onTimer();
@@ -62,7 +61,7 @@ private:
 	TimeInfo currentTime;
 	hw_timer_t* timer;
 	uint32_t offlineTimeCounter;
-	static TimeManager* TimeManagerSingelton;
+	static TimeManager* TimeManagerSingleton;
 	TimeInfo TimerInitialDuration;
 	TimeInfo TimerDuration;
 	TimeInfo AlarmTime;
@@ -87,7 +86,7 @@ public:
 	~TimeManager();
 
 	/**
-	 * \brief Get the singelton instance ot the Time Manager
+	 * \brief Get the singleton instance ot the Time Manager
 	 */
 	static TimeManager* getInstance();
 

@@ -149,6 +149,7 @@ public:
 	 * 
 	 */
 	TimeManager::TimeInfo   _TimerDuration;
+	TimeManager::TimeInfo   _InitialTimerDuration;
 	Timer_Digit_enum        _CurrentTimerDigit;
 	Timer_State_enum        _TimerState;
     /**

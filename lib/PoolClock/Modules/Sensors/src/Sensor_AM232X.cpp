@@ -97,11 +97,14 @@ void Sensor_AM232X::handle()
     {
     	uint64_t currentMillis = millis();
         if (currentMillis - _last_read > uint64_t(_read_frequency) ) {
+            // Note that the sensor can go into sleep mode after 3 seconds after last read, 
+            // so one might need to call wakeUp() before the read().
+            _AM232X->wakeUp();
             int status = _AM232X->read();
             switch (status)
             {
                 case AM232X_OK:
-                  LOG_I(TAG, "AM232X sensor read status = OK");
+                  LOG_D(TAG, "AM232X sensor read status = OK");
                   break;
                 default:
                   LOG_E(TAG, "AM232X sensor read status = %d", status);

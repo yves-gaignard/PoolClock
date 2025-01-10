@@ -98,21 +98,6 @@
 		#define SECONDARY_DNS           8,  8,  4, 4
 	#endif
 
-	/**
-	 * \brief Server for the time
-	 */
-	#define NTP_SERVER "pool.ntp.org"
-
-	/**
-	 * \brief Enter the string for your timezone according to this webpage: https://remotemonitoringsystems.ca/time-zone-abbreviations.php
-	 */
-	#define TIMEZONE_INFO "CET-1CEST-2,M3.5.0/02:00:00,M10.5.0/03:00:00"
-
-	/**
-	 * \brief Time in seconds for the interval in which the time should be synchronized with the time server
-	 */
-	#define TIME_SYNC_INTERVAL 1800
-
 #endif
 
 /*********************************
