@@ -162,7 +162,7 @@ void setup()
 	Log.setTag("PoolClock_main"      , DEFAULT_LOG_LEVEL);
 	Log.setTag("Sensor_AM232X"       , DEFAULT_LOG_LEVEL);
 	Log.setTag("Sensor_DS18B20"      , DEFAULT_LOG_LEVEL);
-	Log.setTag("Sensor_HCSR501"      , DEFAULT_LOG_LEVEL);
+	Log.setTag("Sensor_HCSR501"      , LOG_DEBUG);
 	Log.setTag("SevenSegment"        , DEFAULT_LOG_LEVEL);
 	Log.setTag("TimeManager"         , DEFAULT_LOG_LEVEL);
 	Log.setTag("WebSrvManager"       , LOG_DEBUG);

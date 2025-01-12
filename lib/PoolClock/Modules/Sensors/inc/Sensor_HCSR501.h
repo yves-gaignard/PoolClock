@@ -15,13 +15,14 @@
 class Sensor_HCSR501
 {
 private:
-    static   Sensor_HCSR501* _instance;
-    int      _pir_pin = 0;
-    bool     _is_init = false;
-    bool     _pir_state = false;
-    uint64_t _time_delay = 0;
-    uint64_t _last_state_true = 0;
-    uint64_t _last_state_false = 0;
+    static        Sensor_HCSR501* _instance;
+    int           _pir_pin            = 0;
+    bool          _is_init            = false;
+    int           _pir_state          = LOW;
+    unsigned long _time_delay         = 0;
+    unsigned long _last_state_HIGH    = 0;
+    unsigned long _last_state_LOW     = 0;
+    unsigned long _last_changed_state = 0;
 
 	Sensor_HCSR501();
 public:
@@ -41,12 +42,18 @@ public:
     /**
      * \brief initialize HC-SR501 sensor
      */
-    bool init(int pir_pin, uint64_t time_delay);
+    bool init(int pir_pin, unsigned long time_delay);
 
     /**
-     * \brief Returns the state of PIR sensor
+     * \brief Returns the state of PIR sensor (HIGH or LOW)
      */
-    bool getPIRState();
+    int getPIRState();
+
+    /**
+     * \brief Returns the last time in milliseconds the state of PIR sensor changed 
+     *        from HIGH to LOW or LOW to HIGH
+     */
+    unsigned long getLastChangedState();
 
     /**
      * \brief Returns the true if motion is detected in the last time delay provided at init
