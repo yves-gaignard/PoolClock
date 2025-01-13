@@ -71,6 +71,13 @@ const ProjectStructure Project {"Pool Clock", "1.0.0", "Yves Gaignard"};
 	LCDScreen_BlinkingDigit _lcd_blinking_digit = LowMinute;
 #endif
 
+#if USE_BUZZER == true
+	#include "BuzzerManager.h"
+	BuzzerManager buzzer;
+	// Melodies to be used
+	std::vector<Song> BuzzerSongs;
+#endif
+
 DisplayManager* PoolClockDisplays = DisplayManager::getInstance();
 TimeManager* timeM = TimeManager::getInstance();
 ClockState* states = ClockState::getInstance();
@@ -265,6 +272,21 @@ void setup()
 		_last_treated_transition = NONE;
 	#endif
 
+	#if USE_BUZZER == true
+	  	LOG_I(TAG, "Buzzer Initialization ...");
+ 		buzzer.Init(BUZZER_PIN);
+  		LOG_I(TAG, "Buzzer Initialization OK");
+		// selection criteria
+		std::copy_if(MelodyList.begin(), MelodyList.end(), std::back_inserter(BuzzerSongs),
+			[](const Song& song) {
+			return song.SongName == "Nokia Ringtone"; 
+			}
+		);
+		for (int i=0; i < BuzzerSongs.size(); i++) {
+			buzzer.addMelody(BuzzerSongs[i]);
+		}
+	#endif
+
 	LOG_I(TAG, "Displaying startup animation...");
 	startupAnimation();
 	LOG_I(TAG, "Setup done...");
@@ -289,6 +311,12 @@ void loop()
 	#endif
 	LOG_V(TAG, "states->handleStates()...");
 	states->handleStates(); //updates display states, switches between modes etc.
+
+	if (states->_current_state == TIMER_NOTIFICATION) {
+		int duration = 1;
+    	LOG_I(TAG, "Playing song : %s", BuzzerSongs[0].SongName.c_str());
+    	buzzer.playMelody(0, duration);
+	}
 
 	if (states->_last_transition != NONE) {
 			LOG_D(TAG, "Main loop - Treat new transition: %d", states->_last_transition);

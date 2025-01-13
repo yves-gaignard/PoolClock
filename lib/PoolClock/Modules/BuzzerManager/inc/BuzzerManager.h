@@ -8,26 +8,57 @@
 
 #include <Arduino.h>
 #include <vector>
-
-#include "LogManager.h"
+#include "Melodies.h"
 
 class BuzzerManager {
   private:
+    bool _isInit = false;
     int _buzzer_pin;
-    std::vector<std::string>      _melody_names;
-    std::vector<std::vector<int>> _melody_notes;
+    std::vector<Song> _melodies;
 
   public:
     BuzzerManager();
     ~BuzzerManager();
 
+    /**
+     * @brief Initialize the buzzer
+     * 
+     * @param BuzzerPin : pin number of the buzzer
+     */
     void Init(uint8_t BuzzerPin);
 
-    int addMelody (std::string MelodyName, std::vector<int> Notes);
+    /**
+     * @brief Add a melody in the internal vector of the buzzer
+     * 
+     * @param Melody : a song structure to be added in the internal vector
+     * @return int : return the index of the vector for this melody
+     */
+    int addMelody (Song& Melody);
 
-    void playMelody(std::string MelodyName);
+    /**
+     * @brief play the choosen melody through its name during at least some seconds. 
+     * If the melody duration is smaller than the playing duration, then the melody will be play several times
+     * 
+     * @param MelodyName : name of the melody to play
+     * @param duration   : duration in seconds of the playing
+     */
+    void playMelody(std::string MelodyName, int duration);
+
+    /**
+     * @brief play the choosen melody through its index during at least some seconds. 
+     * If the melody duration is smaller than the playing duration, then the melody will be play several times
+     * 
+     * @param MelodyIndex : index of the melody vector to play
+     * @param duration    : duration in seconds of the playing
+     */
+    void playMelody(int MelodyIndex, int duration);
     
-    void playRandomMelody();
+    /**
+     * @brief play randomly one of the melody during several seconds
+     * 
+     * @param duration    : duration in seconds of the playing
+     */
+    void playRandomMelody(int duration);
 };
 
 #endif

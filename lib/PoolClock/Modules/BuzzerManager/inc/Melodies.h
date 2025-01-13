@@ -2,14 +2,14 @@
  * \file BuzzerManager.h
  * \author Yves Gaignard
  * \brief Definition of the class BuzzerManager which manage a piezo buzzer
+ *  This module is inspired from Robson Couto @ https://github.com/robsoncouto 
+ *  More songs available at https://github.com/robsoncouto/arduino-songs   
  */
 #ifndef _MELODIES_H_
 #define _MELODIES_H_
 
 #include <Arduino.h>
 #include <vector>
-
-#include "LogManager.h"
 
 /**
  * @brief Note definitions
@@ -106,7 +106,14 @@
 #define NOTE_DS8 4978
 #define REST        0
 
-// notes of the moledy followed by the duration.
+// Structure of a song
+struct Song {
+    std::string SongName;          // the song name
+    int Tempo;                     // Tempo in BPM (Beats Per Minute)
+    std::vector<int> Notes;        // Notes of the song
+};
+
+// notes of the melody followed by the duration.
 // a 4 means a quarter note, 8 an eighteenth , 16 sixteenth, so on
 // !!negative numbers are used to represent dotted notes,
 // so -4 means a dotted quarter note, that is, a quarter plus an eighteenth!!
@@ -115,15 +122,19 @@
  * @brief JINGLE BELLS melody
  * 
  */
-std::vector<int> Notes_JingleBells {
-  NOTE_E5, 8, NOTE_E5, 8, NOTE_E5, 4,
-  NOTE_E5, 8, NOTE_E5, 8, NOTE_E5, 4,
-  NOTE_E5, 8, NOTE_G5, 8, NOTE_C5, 8 ,NOTE_D5, 8,
-  NOTE_E5, 2,
-  NOTE_F5, 8, NOTE_F5, 8, NOTE_F5, 8, NOTE_F5, 8,
-  NOTE_F5, 8, NOTE_E5, 8, NOTE_E5, 8, NOTE_E5, 16, NOTE_E5, 16,
-  NOTE_E5, 8, NOTE_D5, 8, NOTE_D5, 8, NOTE_E5, 8,
-  NOTE_D5, 4, NOTE_G5, 4
+static const Song JingleBells = {
+  "Jingle Bells",                  
+  120,                           
+  {    
+    NOTE_E5, 8, NOTE_E5, 8, NOTE_E5, 4,
+    NOTE_E5, 8, NOTE_E5, 8, NOTE_E5, 4,
+    NOTE_E5, 8, NOTE_G5, 8, NOTE_C5, 8 ,NOTE_D5, 8,
+    NOTE_E5, 2,
+    NOTE_F5, 8, NOTE_F5, 8, NOTE_F5, 8, NOTE_F5, 8,
+    NOTE_F5, 8, NOTE_E5, 8, NOTE_E5, 8, NOTE_E5, 16, NOTE_E5, 16,
+    NOTE_E5, 8, NOTE_D5, 8, NOTE_D5, 8, NOTE_E5, 8,
+    NOTE_D5, 4, NOTE_G5, 4
+  }
 };
 
 /**
@@ -131,27 +142,27 @@ std::vector<int> Notes_JingleBells {
  * Score available at https://musescore.com/user/190926/scores/181370
  * 
  */
-static std::vector<int> Notes_AsaBranca {
-  NOTE_G4,8, NOTE_A4,8, NOTE_B4,4, NOTE_D5,4, NOTE_D5,4, NOTE_B4,4, 
-  NOTE_C5,4, NOTE_C5,2, NOTE_G4,8, NOTE_A4,8,
-  NOTE_B4,4, NOTE_D5,4, NOTE_D5,4, NOTE_C5,4,
-
-  NOTE_B4,2, REST,8, NOTE_G4,8, NOTE_G4,8, NOTE_A4,8,
-  NOTE_B4,4, NOTE_D5,4, REST,8, NOTE_D5,8, NOTE_C5,8, NOTE_B4,8,
-  NOTE_G4,4, NOTE_C5,4, REST,8, NOTE_C5,8, NOTE_B4,8, NOTE_A4,8,
-
-  NOTE_A4,4, NOTE_B4,4, REST,8, NOTE_B4,8, NOTE_A4,8, NOTE_G4,8,
-  NOTE_G4,2, REST,8, NOTE_G4,8, NOTE_G4,8, NOTE_A4,8,
-  NOTE_B4,4, NOTE_D5,4, REST,8, NOTE_D5,8, NOTE_C5,8, NOTE_B4,8,
-
-  NOTE_G4,4, NOTE_C5,4, REST,8, NOTE_C5,8, NOTE_B4,8, NOTE_A4,8,
-  NOTE_A4,4, NOTE_B4,4, REST,8, NOTE_B4,8, NOTE_A4,8, NOTE_G4,8,
-  NOTE_G4,4, NOTE_F5,8, NOTE_D5,8, NOTE_E5,8, NOTE_C5,8, NOTE_D5,8, NOTE_B4,8,
-
-  NOTE_C5,8, NOTE_A4,8, NOTE_B4,8, NOTE_G4,8, NOTE_A4,8, NOTE_G4,8, NOTE_E4,8, NOTE_G4,8,
-  NOTE_G4,4, NOTE_F5,8, NOTE_D5,8, NOTE_E5,8, NOTE_C5,8, NOTE_D5,8, NOTE_B4,8,
-  NOTE_C5,8, NOTE_A4,8, NOTE_B4,8, NOTE_G4,8, NOTE_A4,8, NOTE_G4,8, NOTE_E4,8, NOTE_G4,8,
-  NOTE_G4,-2, REST,4
+static const Song AsaBranca = {
+  "Asa Branca",                  
+  120,                           
+  {                              
+    NOTE_G4, 8, NOTE_A4, 8, NOTE_B4, 4, NOTE_D5, 4, NOTE_D5, 4, NOTE_B4, 4, 
+    NOTE_C5, 4, NOTE_C5, 2, NOTE_G4, 8, NOTE_A4, 8,
+    NOTE_B4, 4, NOTE_D5, 4, NOTE_D5, 4, NOTE_C5, 4,
+    NOTE_B4, 2, REST, 8, NOTE_G4, 8, NOTE_G4, 8, NOTE_A4, 8,
+    NOTE_B4, 4, NOTE_D5, 4, REST, 8, NOTE_D5, 8, NOTE_C5, 8, NOTE_B4, 8,
+    NOTE_G4, 4, NOTE_C5, 4, REST, 8, NOTE_C5, 8, NOTE_B4, 8, NOTE_A4, 8,
+    NOTE_A4, 4, NOTE_B4, 4, REST, 8, NOTE_B4, 8, NOTE_A4, 8, NOTE_G4, 8,
+    NOTE_G4, 2, REST, 8, NOTE_G4, 8, NOTE_G4, 8, NOTE_A4, 8,
+    NOTE_B4, 4, NOTE_D5, 4, REST, 8, NOTE_D5, 8, NOTE_C5, 8, NOTE_B4, 8,
+    NOTE_G4, 4, NOTE_C5, 4, REST, 8, NOTE_C5, 8, NOTE_B4, 8, NOTE_A4, 8,
+    NOTE_A4, 4, NOTE_B4, 4, REST, 8, NOTE_B4, 8, NOTE_A4, 8, NOTE_G4, 8,
+    NOTE_G4, 4, NOTE_F5, 8, NOTE_D5, 8, NOTE_E5, 8, NOTE_C5, 8, NOTE_D5, 8, NOTE_B4, 8,
+    NOTE_C5, 8, NOTE_A4, 8, NOTE_B4, 8, NOTE_G4, 8, NOTE_A4, 8, NOTE_G4, 8, NOTE_E4, 8, NOTE_G4, 8,
+    NOTE_G4, 4, NOTE_F5, 8, NOTE_D5, 8, NOTE_E5, 8, NOTE_C5, 8, NOTE_D5, 8, NOTE_B4, 8,
+    NOTE_C5, 8, NOTE_A4, 8, NOTE_B4, 8, NOTE_G4, 8, NOTE_A4, 8, NOTE_G4, 8, NOTE_E4, 8, NOTE_G4, 8,
+    NOTE_G4, -2, REST, 4
+  }
 };
 
 /**
@@ -159,93 +170,97 @@ static std::vector<int> Notes_AsaBranca {
  * Score available at https://musescore.com/user/18545446/scores/5061407
  * 
  */
-static std::vector<int> Notes_TheLionSleepsTonight { 
-  NOTE_F4, 4, NOTE_G4, 4, NOTE_A4, 8, NOTE_G4, 4, NOTE_A4, 8, //1
-  NOTE_AS4, 4, NOTE_A4, 4, NOTE_G4, 8, NOTE_F4, 4, NOTE_G4, 8,
-  NOTE_A4, 4, NOTE_C4, 8, NOTE_C4, 4, NOTE_C4, 8, NOTE_C4, 4,
-  NOTE_C4, 1, //1st ending
+static const Song TheLionSleepsTonight = {
+  "The Lion Sleeps Tonight",                  
+  122,                           
+  {   
+    NOTE_F4, 4, NOTE_G4, 4, NOTE_A4, 8, NOTE_G4, 4, NOTE_A4, 8, //1
+    NOTE_AS4, 4, NOTE_A4, 4, NOTE_G4, 8, NOTE_F4, 4, NOTE_G4, 8,
+    NOTE_A4, 4, NOTE_C4, 8, NOTE_C4, 4, NOTE_C4, 8, NOTE_C4, 4,
+    NOTE_C4, 1, //1st ending
 
-  NOTE_F4, 4, NOTE_G4, 4, NOTE_A4, 8, NOTE_G4, 4, NOTE_A4, 8, //repeats from 1
-  NOTE_AS4, 4, NOTE_A4, 4, NOTE_G4, 8, NOTE_F4, 4, NOTE_G4, 8,
-  NOTE_A4, 4, NOTE_C4, 8, NOTE_C4, 4, NOTE_C4, 8, NOTE_C4, 4,
-  NOTE_C4, -2,  REST, -8, NOTE_A4, 16, //2nd ending
+    NOTE_F4, 4, NOTE_G4, 4, NOTE_A4, 8, NOTE_G4, 4, NOTE_A4, 8, //repeats from 1
+    NOTE_AS4, 4, NOTE_A4, 4, NOTE_G4, 8, NOTE_F4, 4, NOTE_G4, 8,
+    NOTE_A4, 4, NOTE_C4, 8, NOTE_C4, 4, NOTE_C4, 8, NOTE_C4, 4,
+    NOTE_C4, -2,  REST, -8, NOTE_A4, 16, //2nd ending
 
-  NOTE_A4, -8, NOTE_A4, 16, NOTE_A4, -8, NOTE_A4, 16, NOTE_A4, -8, NOTE_A4, 16, NOTE_A4, -8, NOTE_A4, 16, //6
-  NOTE_AS4, -8, NOTE_AS4, 16, NOTE_AS4, -8, NOTE_AS4, 16, NOTE_AS4, -8, NOTE_AS4, 16, NOTE_AS4, -8, NOTE_AS4, 16,
-  NOTE_A4, -8, NOTE_A4, 16, NOTE_A4, -8, NOTE_A4, 16, NOTE_A4, -8, NOTE_A4, 16, NOTE_A4, -8, NOTE_A4, 16,
-  NOTE_G4, -8, NOTE_G4, 16, NOTE_G4, -8, NOTE_G4, 16, NOTE_G4, -8, NOTE_G4, 16, NOTE_G4, -8, NOTE_G4, 16,
+    NOTE_A4, -8, NOTE_A4, 16, NOTE_A4, -8, NOTE_A4, 16, NOTE_A4, -8, NOTE_A4, 16, NOTE_A4, -8, NOTE_A4, 16, //6
+    NOTE_AS4, -8, NOTE_AS4, 16, NOTE_AS4, -8, NOTE_AS4, 16, NOTE_AS4, -8, NOTE_AS4, 16, NOTE_AS4, -8, NOTE_AS4, 16,
+    NOTE_A4, -8, NOTE_A4, 16, NOTE_A4, -8, NOTE_A4, 16, NOTE_A4, -8, NOTE_A4, 16, NOTE_A4, -8, NOTE_A4, 16,
+    NOTE_G4, -8, NOTE_G4, 16, NOTE_G4, -8, NOTE_G4, 16, NOTE_G4, -8, NOTE_G4, 16, NOTE_G4, -8, NOTE_G4, 16,
 
-  NOTE_A4, -8, NOTE_A4, 16, NOTE_A4, -8, NOTE_A4, 16, NOTE_A4, -8, NOTE_A4, 16, NOTE_A4, -8, NOTE_A4, 16, //10
-  NOTE_AS4, -8, NOTE_AS4, 16, NOTE_AS4, -8, NOTE_AS4, 16, NOTE_AS4, -8, NOTE_AS4, 16, NOTE_AS4, -8, NOTE_AS4, 16,
-  NOTE_A4, -8, NOTE_A4, 16, NOTE_A4, -8, NOTE_A4, 16, NOTE_A4, -8, NOTE_A4, 16, NOTE_A4, -8, NOTE_A4, 16,
-  NOTE_G4, -8, NOTE_G4, 16, NOTE_G4, -8, NOTE_G4, 16, NOTE_G4, -8, NOTE_G4, 16, NOTE_G4, -8, NOTE_G4, 16,
+    NOTE_A4, -8, NOTE_A4, 16, NOTE_A4, -8, NOTE_A4, 16, NOTE_A4, -8, NOTE_A4, 16, NOTE_A4, -8, NOTE_A4, 16, //10
+    NOTE_AS4, -8, NOTE_AS4, 16, NOTE_AS4, -8, NOTE_AS4, 16, NOTE_AS4, -8, NOTE_AS4, 16, NOTE_AS4, -8, NOTE_AS4, 16,
+    NOTE_A4, -8, NOTE_A4, 16, NOTE_A4, -8, NOTE_A4, 16, NOTE_A4, -8, NOTE_A4, 16, NOTE_A4, -8, NOTE_A4, 16,
+    NOTE_G4, -8, NOTE_G4, 16, NOTE_G4, -8, NOTE_G4, 16, NOTE_G4, -8, NOTE_G4, 16, NOTE_G4, -8, NOTE_G4, 16,
 
-  NOTE_F4, 4, NOTE_G4, 4, NOTE_A4, 8, NOTE_G4, 4, NOTE_A4, 8, //14
-  NOTE_AS4, 4, NOTE_A4, 4, NOTE_G4, 8, NOTE_F4, 4, NOTE_G4, 8,
-  NOTE_A4, 4, NOTE_G4, 4, NOTE_F4, 4, NOTE_A4, 4,
-  NOTE_G4, 1,
-  NOTE_C5, 4, NOTE_A4, 4, NOTE_G4, 8, NOTE_A4, 4, NOTE_C5, 8,
-  NOTE_AS4, 4, NOTE_A4, 4, NOTE_G4, 8, NOTE_F4, 4, NOTE_G4, 8,
-  NOTE_A4, 4, NOTE_G4, 4, NOTE_F4, 4, NOTE_A4, 4,
-  NOTE_G4, 1,
+    NOTE_F4, 4, NOTE_G4, 4, NOTE_A4, 8, NOTE_G4, 4, NOTE_A4, 8, //14
+    NOTE_AS4, 4, NOTE_A4, 4, NOTE_G4, 8, NOTE_F4, 4, NOTE_G4, 8,
+    NOTE_A4, 4, NOTE_G4, 4, NOTE_F4, 4, NOTE_A4, 4,
+    NOTE_G4, 1,
+    NOTE_C5, 4, NOTE_A4, 4, NOTE_G4, 8, NOTE_A4, 4, NOTE_C5, 8,
+    NOTE_AS4, 4, NOTE_A4, 4, NOTE_G4, 8, NOTE_F4, 4, NOTE_G4, 8,
+    NOTE_A4, 4, NOTE_G4, 4, NOTE_F4, 4, NOTE_A4, 4,
+    NOTE_G4, 1,
 
-  NOTE_C5, 1, //22
-  NOTE_C5, 4, NOTE_AS4, 8, NOTE_C5, 8, NOTE_AS4, 2,
-  NOTE_A4, 4, NOTE_C4, 8, NOTE_C4, 4, NOTE_C4, 8, NOTE_C4, 4,
-  NOTE_C4, 1,
+    NOTE_C5, 1, //22
+    NOTE_C5, 4, NOTE_AS4, 8, NOTE_C5, 8, NOTE_AS4, 2,
+    NOTE_A4, 4, NOTE_C4, 8, NOTE_C4, 4, NOTE_C4, 8, NOTE_C4, 4,
+    NOTE_C4, 1,
 
-  REST, 4, NOTE_A4, 8, NOTE_G4, 8, NOTE_F4, 8, NOTE_E4, 8, NOTE_D4, 8, NOTE_C4, 8, 
-  NOTE_D4, 1,
-  REST, 4, NOTE_A4, 8, NOTE_G4, 8, NOTE_F4, 8, NOTE_E4, 8, NOTE_D4, 8, NOTE_C4, 8, 
-  NOTE_D4, 1,
+    REST, 4, NOTE_A4, 8, NOTE_G4, 8, NOTE_F4, 8, NOTE_E4, 8, NOTE_D4, 8, NOTE_C4, 8, 
+    NOTE_D4, 1,
+    REST, 4, NOTE_A4, 8, NOTE_G4, 8, NOTE_F4, 8, NOTE_E4, 8, NOTE_D4, 8, NOTE_C4, 8, 
+    NOTE_D4, 1,
 
-  NOTE_F4, 4, NOTE_G4, 4, NOTE_A4, 8, NOTE_G4, 4, NOTE_A4, 8, //repeats from 14
-  NOTE_AS4, 4, NOTE_A4, 4, NOTE_G4, 8, NOTE_F4, 4, NOTE_G4, 8,
-  NOTE_A4, 4, NOTE_G4, 4, NOTE_F4, 4, NOTE_A4, 4,
-  NOTE_G4, 1,
-  NOTE_C5, 4, NOTE_A4, 4, NOTE_G4, 8, NOTE_A4, 4, NOTE_C5, 8,
-  NOTE_AS4, 4, NOTE_A4, 4, NOTE_G4, 8, NOTE_F4, 4, NOTE_G4, 8,
-  NOTE_A4, 4, NOTE_G4, 4, NOTE_F4, 4, NOTE_A4, 4,
-  NOTE_G4, 1,
+    NOTE_F4, 4, NOTE_G4, 4, NOTE_A4, 8, NOTE_G4, 4, NOTE_A4, 8, //repeats from 14
+    NOTE_AS4, 4, NOTE_A4, 4, NOTE_G4, 8, NOTE_F4, 4, NOTE_G4, 8,
+    NOTE_A4, 4, NOTE_G4, 4, NOTE_F4, 4, NOTE_A4, 4,
+    NOTE_G4, 1,
+    NOTE_C5, 4, NOTE_A4, 4, NOTE_G4, 8, NOTE_A4, 4, NOTE_C5, 8,
+    NOTE_AS4, 4, NOTE_A4, 4, NOTE_G4, 8, NOTE_F4, 4, NOTE_G4, 8,
+    NOTE_A4, 4, NOTE_G4, 4, NOTE_F4, 4, NOTE_A4, 4,
+    NOTE_G4, 1,
 
-  NOTE_C5, 1, //22
-  NOTE_C5, 4, NOTE_AS4, 8, NOTE_C5, 8, NOTE_AS4, 2,
-  NOTE_A4, 4, NOTE_C4, 8, NOTE_C4, 4, NOTE_C4, 8, NOTE_C4, 4,
-  NOTE_C4, 1,
+    NOTE_C5, 1, //22
+    NOTE_C5, 4, NOTE_AS4, 8, NOTE_C5, 8, NOTE_AS4, 2,
+    NOTE_A4, 4, NOTE_C4, 8, NOTE_C4, 4, NOTE_C4, 8, NOTE_C4, 4,
+    NOTE_C4, 1,
 
-  REST, 4, NOTE_A4, 8, NOTE_G4, 8, NOTE_F4, 8, NOTE_E4, 8, NOTE_D4, 8, NOTE_C4, 8, 
-  NOTE_D4, 1,
-  REST, 4, NOTE_A4, 8, NOTE_G4, 8, NOTE_F4, 8, NOTE_E4, 8, NOTE_D4, 8, NOTE_C4, 8, 
-  NOTE_D4, 1,
+    REST, 4, NOTE_A4, 8, NOTE_G4, 8, NOTE_F4, 8, NOTE_E4, 8, NOTE_D4, 8, NOTE_C4, 8, 
+    NOTE_D4, 1,
+    REST, 4, NOTE_A4, 8, NOTE_G4, 8, NOTE_F4, 8, NOTE_E4, 8, NOTE_D4, 8, NOTE_C4, 8, 
+    NOTE_D4, 1,
 
-  NOTE_F4, 4, NOTE_G4, 4, NOTE_A4, 8, NOTE_G4, 4, NOTE_A4, 8, //30
-  NOTE_AS4, 4, NOTE_A4, 4, NOTE_G4, 8, NOTE_F4, 4, NOTE_G4, 8,
-  NOTE_A4, 4, NOTE_C4, 8, NOTE_C4, 4, NOTE_C4, 8, NOTE_C4, 4,
-  NOTE_C4, 1, 
+    NOTE_F4, 4, NOTE_G4, 4, NOTE_A4, 8, NOTE_G4, 4, NOTE_A4, 8, //30
+    NOTE_AS4, 4, NOTE_A4, 4, NOTE_G4, 8, NOTE_F4, 4, NOTE_G4, 8,
+    NOTE_A4, 4, NOTE_C4, 8, NOTE_C4, 4, NOTE_C4, 8, NOTE_C4, 4,
+    NOTE_C4, 1, 
 
-  NOTE_F4, 4, NOTE_G4, 4, NOTE_A4, 8, NOTE_G4, 4, NOTE_A4, 8, //repeats from 14 (again)
-  NOTE_AS4, 4, NOTE_A4, 4, NOTE_G4, 8, NOTE_F4, 4, NOTE_G4, 8,
-  NOTE_A4, 4, NOTE_G4, 4, NOTE_F4, 4, NOTE_A4, 4,
-  NOTE_G4, 1,
-  NOTE_C5, 4, NOTE_A4, 4, NOTE_G4, 8, NOTE_A4, 4, NOTE_C5, 8,
-  NOTE_AS4, 4, NOTE_A4, 4, NOTE_G4, 8, NOTE_F4, 4, NOTE_G4, 8,
-  NOTE_A4, 4, NOTE_G4, 4, NOTE_F4, 4, NOTE_A4, 4,
-  NOTE_G4, 1,
+    NOTE_F4, 4, NOTE_G4, 4, NOTE_A4, 8, NOTE_G4, 4, NOTE_A4, 8, //repeats from 14 (again)
+    NOTE_AS4, 4, NOTE_A4, 4, NOTE_G4, 8, NOTE_F4, 4, NOTE_G4, 8,
+    NOTE_A4, 4, NOTE_G4, 4, NOTE_F4, 4, NOTE_A4, 4,
+    NOTE_G4, 1,
+    NOTE_C5, 4, NOTE_A4, 4, NOTE_G4, 8, NOTE_A4, 4, NOTE_C5, 8,
+    NOTE_AS4, 4, NOTE_A4, 4, NOTE_G4, 8, NOTE_F4, 4, NOTE_G4, 8,
+    NOTE_A4, 4, NOTE_G4, 4, NOTE_F4, 4, NOTE_A4, 4,
+    NOTE_G4, 1,
 
-  NOTE_C5, 1, //22
-  NOTE_C5, 4, NOTE_AS4, 8, NOTE_C5, 8, NOTE_AS4, 2,
-  NOTE_A4, 4, NOTE_C4, 8, NOTE_C4, 4, NOTE_C4, 8, NOTE_C4, 4,
-  NOTE_C4, 1,
+    NOTE_C5, 1, //22
+    NOTE_C5, 4, NOTE_AS4, 8, NOTE_C5, 8, NOTE_AS4, 2,
+    NOTE_A4, 4, NOTE_C4, 8, NOTE_C4, 4, NOTE_C4, 8, NOTE_C4, 4,
+    NOTE_C4, 1,
 
-  REST, 4, NOTE_A4, 8, NOTE_G4, 8, NOTE_F4, 8, NOTE_E4, 8, NOTE_D4, 8, NOTE_C4, 8, 
-  NOTE_D4, 1,
-  REST, 4, NOTE_A4, 8, NOTE_G4, 8, NOTE_F4, 8, NOTE_E4, 8, NOTE_D4, 8, NOTE_C4, 8, 
-  NOTE_D4, 1,
+    REST, 4, NOTE_A4, 8, NOTE_G4, 8, NOTE_F4, 8, NOTE_E4, 8, NOTE_D4, 8, NOTE_C4, 8, 
+    NOTE_D4, 1,
+    REST, 4, NOTE_A4, 8, NOTE_G4, 8, NOTE_F4, 8, NOTE_E4, 8, NOTE_D4, 8, NOTE_C4, 8, 
+    NOTE_D4, 1,
 
-  NOTE_F4, 4, NOTE_G4, 4, NOTE_A4, 8, NOTE_G4, 4, NOTE_A4, 8, //30
-  NOTE_AS4, 4, NOTE_A4, 4, NOTE_G4, 8, NOTE_F4, 4, NOTE_G4, 8,
-  NOTE_A4, 4, NOTE_C4, 8, NOTE_C4, 4, NOTE_C4, 8, NOTE_C4, 4,
-  NOTE_C4, 1
+    NOTE_F4, 4, NOTE_G4, 4, NOTE_A4, 8, NOTE_G4, 4, NOTE_A4, 8, //30
+    NOTE_AS4, 4, NOTE_A4, 4, NOTE_G4, 8, NOTE_F4, 4, NOTE_G4, 8,
+    NOTE_A4, 4, NOTE_C4, 8, NOTE_C4, 4, NOTE_C4, 8, NOTE_C4, 4,
+    NOTE_C4, 1
+  }
 };
 
 /**
@@ -253,22 +268,25 @@ static std::vector<int> Notes_TheLionSleepsTonight {
  * Score available at https://musescore.com/user/7965776/scores/1862611
  * 
  */
-static std::vector<int> Notes_BabyElephantWalk {
- 
-  NOTE_C4,-8, NOTE_E4,16, NOTE_G4,8, NOTE_C5,8, NOTE_E5,8, NOTE_D5,8, NOTE_C5,8, NOTE_A4,8,
-  NOTE_FS4,8, NOTE_G4,8, REST,4, REST,2,
-  NOTE_C4,-8, NOTE_E4,16, NOTE_G4,8, NOTE_C5,8, NOTE_E5,8, NOTE_D5,8, NOTE_C5,8, NOTE_A4,8,
-  NOTE_G4,-2, NOTE_A4,8, NOTE_DS4,1,
-  
-  NOTE_A4,8,
-  NOTE_E4,8, NOTE_C4,8, REST,4, REST,2,
-  NOTE_C4,-8, NOTE_E4,16, NOTE_G4,8, NOTE_C5,8, NOTE_E5,8, NOTE_D5,8, NOTE_C5,8, NOTE_A4,8,
-  NOTE_FS4,8, NOTE_G4,8, REST,4, REST,4, REST,8, NOTE_G4,8,
-  NOTE_D5,4, NOTE_D5,4, NOTE_B4,8, NOTE_G4,8, REST,8, NOTE_G4,8,
-   
-  NOTE_C5,4, NOTE_C5,4, NOTE_AS4,16, NOTE_C5,16, NOTE_AS4,16, NOTE_G4,16, NOTE_F4,8, NOTE_DS4,8,
-  NOTE_FS4,4, NOTE_FS4,4, NOTE_F4,16, NOTE_G4,16, NOTE_F4,16, NOTE_DS4,16, NOTE_C4,8, NOTE_G4,8,
-  NOTE_AS4,8, NOTE_C5,8, REST,4, REST,2,
+static const Song BabyElephantWalk = {
+  "Baby Elephant Walk",                  
+  132,                           
+  {   
+    NOTE_C4,-8, NOTE_E4,16, NOTE_G4,8, NOTE_C5,8, NOTE_E5,8, NOTE_D5,8, NOTE_C5,8, NOTE_A4,8,
+    NOTE_FS4,8, NOTE_G4,8, REST,4, REST,2,
+    NOTE_C4,-8, NOTE_E4,16, NOTE_G4,8, NOTE_C5,8, NOTE_E5,8, NOTE_D5,8, NOTE_C5,8, NOTE_A4,8,
+    NOTE_G4,-2, NOTE_A4,8, NOTE_DS4,1,
+    
+    NOTE_A4,8,
+    NOTE_E4,8, NOTE_C4,8, REST,4, REST,2,
+    NOTE_C4,-8, NOTE_E4,16, NOTE_G4,8, NOTE_C5,8, NOTE_E5,8, NOTE_D5,8, NOTE_C5,8, NOTE_A4,8,
+    NOTE_FS4,8, NOTE_G4,8, REST,4, REST,4, REST,8, NOTE_G4,8,
+    NOTE_D5,4, NOTE_D5,4, NOTE_B4,8, NOTE_G4,8, REST,8, NOTE_G4,8,
+    
+    NOTE_C5,4, NOTE_C5,4, NOTE_AS4,16, NOTE_C5,16, NOTE_AS4,16, NOTE_G4,16, NOTE_F4,8, NOTE_DS4,8,
+    NOTE_FS4,4, NOTE_FS4,4, NOTE_F4,16, NOTE_G4,16, NOTE_F4,16, NOTE_DS4,16, NOTE_C4,8, NOTE_G4,8,
+    NOTE_AS4,8, NOTE_C5,8, REST,4, REST,2
+  }
 };
 
 /**
@@ -276,15 +294,18 @@ static std::vector<int> Notes_BabyElephantWalk {
  * Score available at https://musescore.com/user/85429/scores/107109
  * 
  */
-static std::vector<int> Notes_Pacman {
+static const Song Pacman = {
+  "Pacman",                  
+  180, 
+  {
+    NOTE_B4, 16, NOTE_B5, 16, NOTE_FS5, 16, NOTE_DS5, 16, //1
+    NOTE_B5, 32, NOTE_FS5, -16, NOTE_DS5, 8, NOTE_C5, 16,
+    NOTE_C6, 16, NOTE_G6, 16, NOTE_E6, 16, NOTE_C6, 32, NOTE_G6, -16, NOTE_E6, 8,
 
-  NOTE_B4, 16, NOTE_B5, 16, NOTE_FS5, 16, NOTE_DS5, 16, //1
-  NOTE_B5, 32, NOTE_FS5, -16, NOTE_DS5, 8, NOTE_C5, 16,
-  NOTE_C6, 16, NOTE_G6, 16, NOTE_E6, 16, NOTE_C6, 32, NOTE_G6, -16, NOTE_E6, 8,
-
-  NOTE_B4, 16,  NOTE_B5, 16,  NOTE_FS5, 16,   NOTE_DS5, 16,  NOTE_B5, 32,  //2
-  NOTE_FS5, -16, NOTE_DS5, 8,  NOTE_DS5, 32, NOTE_E5, 32,  NOTE_F5, 32,
-  NOTE_F5, 32,  NOTE_FS5, 32,  NOTE_G5, 32,  NOTE_G5, 32, NOTE_GS5, 32,  NOTE_A5, 16, NOTE_B5, 8
+    NOTE_B4, 16,  NOTE_B5, 16,  NOTE_FS5, 16,   NOTE_DS5, 16,  NOTE_B5, 32,  //2
+    NOTE_FS5, -16, NOTE_DS5, 8,  NOTE_DS5, 32, NOTE_E5, 32,  NOTE_F5, 32,
+    NOTE_F5, 32,  NOTE_FS5, 32,  NOTE_G5, 32,  NOTE_G5, 32, NOTE_GS5, 32,  NOTE_A5, 16, NOTE_B5, 8
+  }
 };
 
 /**
@@ -293,34 +314,126 @@ static std::vector<int> Notes_Pacman {
  *   Theme by Masato Nakamura, arranged by Teddy Mason
  * 
  */
-static std::vector<int> Notes_PinkPantherTheme {
+static const Song PinkPantherTheme = {
+  "Pink Panther Theme",                  
+  120, 
+  {
+    REST,2, REST,4, REST,8, NOTE_DS4,8, 
+    NOTE_E4,-4, REST,8, NOTE_FS4,8, NOTE_G4,-4, REST,8, NOTE_DS4,8,
+    NOTE_E4,-8, NOTE_FS4,8,  NOTE_G4,-8, NOTE_C5,8, NOTE_B4,-8, NOTE_E4,8, NOTE_G4,-8, NOTE_B4,8,   
+    NOTE_AS4,2, NOTE_A4,-16, NOTE_G4,-16, NOTE_E4,-16, NOTE_D4,-16, 
+    NOTE_E4,2, REST,4, REST,8, NOTE_DS4,4,
 
-  REST,2, REST,4, REST,8, NOTE_DS4,8, 
-  NOTE_E4,-4, REST,8, NOTE_FS4,8, NOTE_G4,-4, REST,8, NOTE_DS4,8,
-  NOTE_E4,-8, NOTE_FS4,8,  NOTE_G4,-8, NOTE_C5,8, NOTE_B4,-8, NOTE_E4,8, NOTE_G4,-8, NOTE_B4,8,   
-  NOTE_AS4,2, NOTE_A4,-16, NOTE_G4,-16, NOTE_E4,-16, NOTE_D4,-16, 
-  NOTE_E4,2, REST,4, REST,8, NOTE_DS4,4,
-
-  NOTE_E4,-4, REST,8, NOTE_FS4,8, NOTE_G4,-4, REST,8, NOTE_DS4,8,
-  NOTE_E4,-8, NOTE_FS4,8,  NOTE_G4,-8, NOTE_C5,8, NOTE_B4,-8, NOTE_G4,8, NOTE_B4,-8, NOTE_E5,8,
-  NOTE_DS5,1,   
-  NOTE_D5,2, REST,4, REST,8, NOTE_DS4,8, 
-  NOTE_E4,-4, REST,8, NOTE_FS4,8, NOTE_G4,-4, REST,8, NOTE_DS4,8,
-  NOTE_E4,-8, NOTE_FS4,8,  NOTE_G4,-8, NOTE_C5,8, NOTE_B4,-8, NOTE_E4,8, NOTE_G4,-8, NOTE_B4,8,   
-  
-  NOTE_AS4,2, NOTE_A4,-16, NOTE_G4,-16, NOTE_E4,-16, NOTE_D4,-16, 
-  NOTE_E4,-4, REST,4,
-  REST,4, NOTE_E5,-8, NOTE_D5,8, NOTE_B4,-8, NOTE_A4,8, NOTE_G4,-8, NOTE_E4,-8,
-  NOTE_AS4,16, NOTE_A4,-8, NOTE_AS4,16, NOTE_A4,-8, NOTE_AS4,16, NOTE_A4,-8, NOTE_AS4,16, NOTE_A4,-8,   
-  NOTE_G4,-16, NOTE_E4,-16, NOTE_D4,-16, NOTE_E4,16, NOTE_E4,16, NOTE_E4,2,
- 
+    NOTE_E4,-4, REST,8, NOTE_FS4,8, NOTE_G4,-4, REST,8, NOTE_DS4,8,
+    NOTE_E4,-8, NOTE_FS4,8,  NOTE_G4,-8, NOTE_C5,8, NOTE_B4,-8, NOTE_G4,8, NOTE_B4,-8, NOTE_E5,8,
+    NOTE_DS5,1,   
+    NOTE_D5,2, REST,4, REST,8, NOTE_DS4,8, 
+    NOTE_E4,-4, REST,8, NOTE_FS4,8, NOTE_G4,-4, REST,8, NOTE_DS4,8,
+    NOTE_E4,-8, NOTE_FS4,8,  NOTE_G4,-8, NOTE_C5,8, NOTE_B4,-8, NOTE_E4,8, NOTE_G4,-8, NOTE_B4,8,   
+    
+    NOTE_AS4,2, NOTE_A4,-16, NOTE_G4,-16, NOTE_E4,-16, NOTE_D4,-16, 
+    NOTE_E4,-4, REST,4,
+    REST,4, NOTE_E5,-8, NOTE_D5,8, NOTE_B4,-8, NOTE_A4,8, NOTE_G4,-8, NOTE_E4,-8,
+    NOTE_AS4,16, NOTE_A4,-8, NOTE_AS4,16, NOTE_A4,-8, NOTE_AS4,16, NOTE_A4,-8, NOTE_AS4,16, NOTE_A4,-8,   
+    NOTE_G4,-16, NOTE_E4,-16, NOTE_D4,-16, NOTE_E4,16, NOTE_E4,16, NOTE_E4,2,
+  }
 };
-static std::vector<std::string> MelodyNames = {
-"Jingle Bells" , "Asa Branca", "The Lion Sleeps Tonight", "Baby Elephant Walk", "Pacman", "Pink Panther Theme"
+
+/** 
+*  @brief Tetris theme - (Korobeiniki)
+*  Based on the arrangement at https://www.flutetunes.com/tunes.php?id=192
+**/
+static const Song TetrisTheme = {
+  "Tetris Theme",                  
+  144, 
+  {
+    NOTE_E5, 4,  NOTE_B4,8,  NOTE_C5,8,  NOTE_D5,4,  NOTE_C5,8,  NOTE_B4,8,
+    NOTE_A4, 4,  NOTE_A4,8,  NOTE_C5,8,  NOTE_E5,4,  NOTE_D5,8,  NOTE_C5,8,
+    NOTE_B4,-4,  NOTE_C5,8,  NOTE_D5,4,  NOTE_E5,4,
+    NOTE_C5, 4,  NOTE_A4,4,  NOTE_A4,8,  NOTE_A4,4,  NOTE_B4,8,  NOTE_C5,8,
+
+    NOTE_D5,-4,  NOTE_F5,8,  NOTE_A5,4,  NOTE_G5,8,  NOTE_F5,8,
+    NOTE_E5,-4,  NOTE_C5,8,  NOTE_E5,4,  NOTE_D5,8,  NOTE_C5,8,
+    NOTE_B4, 4,  NOTE_B4,8,  NOTE_C5,8,  NOTE_D5,4,  NOTE_E5,4,
+    NOTE_C5, 4,  NOTE_A4,4,  NOTE_A4,4,  REST, 4,
+
+    NOTE_E5, 4,  NOTE_B4,8,  NOTE_C5,8,  NOTE_D5,4,  NOTE_C5,8,  NOTE_B4,8,
+    NOTE_A4, 4,  NOTE_A4,8,  NOTE_C5,8,  NOTE_E5,4,  NOTE_D5,8,  NOTE_C5,8,
+    NOTE_B4,-4,  NOTE_C5,8,  NOTE_D5,4,  NOTE_E5,4,
+    NOTE_C5, 4,  NOTE_A4,4,  NOTE_A4,8,  NOTE_A4,4,  NOTE_B4,8,  NOTE_C5,8,
+
+    NOTE_D5,-4,  NOTE_F5,8,  NOTE_A5,4,  NOTE_G5,8,  NOTE_F5,8,
+    NOTE_E5,-4,  NOTE_C5,8,  NOTE_E5,4,  NOTE_D5,8,  NOTE_C5,8,
+    NOTE_B4, 4,  NOTE_B4,8,  NOTE_C5,8,  NOTE_D5,4,  NOTE_E5,4,
+    NOTE_C5, 4,  NOTE_A4,4,  NOTE_A4,4,  REST, 4,
+    
+    NOTE_E5, 2,  NOTE_C5,2,
+    NOTE_D5, 2,  NOTE_B4,2,
+    NOTE_C5, 2,  NOTE_A4,2,
+    NOTE_GS4,2,  NOTE_B4,4,  REST,8, 
+    NOTE_E5, 2,  NOTE_C5,2,
+    NOTE_D5, 2,  NOTE_B4,2,
+    NOTE_C5, 4,  NOTE_E5,4,  NOTE_A5,2,
+    NOTE_GS5,2
+    }
 };
 
-static std::vector<std::vector<int>> MelodyNotes = {
-Notes_JingleBells , Notes_AsaBranca, Notes_TheLionSleepsTonight, Notes_BabyElephantWalk, Notes_Pacman, Notes_PinkPantherTheme
+/** 
+*  @brief The Lick
+**/
+static const Song TheLick = {
+  "The Lick",                  
+  108, 
+  {
+    NOTE_D4,8, NOTE_E4,8, NOTE_F4,8, NOTE_G4,8, NOTE_E4,4, NOTE_C4,8, NOTE_D4,1
+  }
+};
+
+/** 
+*  @brief Nokia Ringtone 
+*  Score available at https://musescore.com/user/29944637/scores/5266155
+*
+**/
+static const Song NokiaRingtone = {
+  "Nokia Ringtone",                  
+  180, 
+  {
+    NOTE_E5,  8, NOTE_D5, 8, NOTE_FS4, 4, NOTE_GS4, 4, 
+    NOTE_CS5, 8, NOTE_B4, 8, NOTE_D4,  4, NOTE_E4,  4, 
+    NOTE_B4,  8, NOTE_A4, 8, NOTE_CS4, 4, NOTE_E4,  4,
+    NOTE_A4,  2
+  }
+};
+
+/**
+ * @brief Lis of songs
+ * 
+ */
+static std::vector<Song> MelodyList = { 
+  JingleBells , AsaBranca, TheLionSleepsTonight, BabyElephantWalk, 
+  Pacman, PinkPantherTheme, TetrisTheme, TheLick, NokiaRingtone 
+};
+
+/**
+ * @brief Function to look for a song index by its name
+ * 
+ * @param songs : vector of Songs
+ * @param name  : string containing the name of the song
+ * @return int  : the index of the song in the vector. If not found, then return -1
+ */
+// 
+static int findSongIndexByName(const std::vector<Song>& songs, const std::string& name) {
+    auto it = std::find_if(songs.begin(), songs.end(), [&name](const Song& song) {
+        return song.SongName == name;
+    });
+
+    if (it != songs.end()) {
+        // return the index of the song found
+        return std::distance(songs.begin(), it);
+    }
+
+    // Return -1 if no song found
+    return -1;
 };
 
 #endif
