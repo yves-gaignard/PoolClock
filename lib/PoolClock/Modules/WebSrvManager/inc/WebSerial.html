@@ -1,5 +1,12 @@
 <!DOCTYPE html>
 <html>
+<!--
+    ATTENTION : This file is not the one used by the WebSerial.cpp program
+    This file must be encoded to generate a PROGMEM table for performance consideration
+    The result of the encoding must be placed in the file : WebSerialWebPage.h
+    URL to create this table: https://www.mischianti.org/online-converter-file-to-cpp-gzip-byte-array-3/ 
+    URL to decode this table: https://gchq.github.io/CyberChef/#recipe=From_Hex('Auto')Gunzip()   (use recipe: "From Hex" + "Gunzip")
+-->
 
 <head>
     <meta charset="utf-8" />
@@ -39,6 +46,14 @@
 
         .text-center {
             text-align: center;
+        }
+
+        .text-left {
+            text-align: left;
+        }
+
+        .text-right {
+            text-align: right;
         }
 
         .gray {
@@ -144,6 +159,11 @@
             color: black;
         }
 
+        .header {
+            padding: 1rem 0.5rem;
+            background-color: white;
+        }
+
         .footer {
             padding: 1rem 0.5rem;
             background-color: white;
@@ -165,7 +185,7 @@
 
 <body>
     <div class="section main text-center">
-        <h1>PoolClock WebSerial</h1>
+        <h1><a href="./index.html">PoolClock</a> WebSerial</h1>
         <div class="pannel shadow grid gap-2">
             <div id="control-button">
                 <button class="rounded shadow" onclick="terminalClean()">
@@ -202,15 +222,6 @@
                     class="grid justify-items-end rounded shadow" id="command-button">
                     SEND
                 </button>
-            </div>
-        </div>
-        <h1 />
-    </div>
-    <div class="section footer">
-        <div class="copyright">
-            <div class="float-left"></div>
-            <div class="float-right gray">
-                Powered By<a href="https://www.homeboyc.cn/" class="gray">Atom</a>
             </div>
         </div>
     </div>

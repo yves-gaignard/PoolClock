@@ -21,20 +21,20 @@ const ProjectStructure Project {"Pool Clock", "1.0.0", "Yves Gaignard"};
 #include "Configuration.h"
 #include "LogManager.h"
 #include "DisplayManager.h"
-//#include "PoolClockCmd.h"
 #include "ClockState.h"
 
 #if RUN_WITHOUT_WIFI == false
 	#include "WiFi.h"
     #include <WiFiClient.h>
-    #include <WebServer.h>
+    //#include <WebServer.h>
 #endif
 
 #if ENABLE_OTA_UPLOAD == true
-	#include <ElegantOTA.h>
-	//#include <ArduinoOTA.h>
+	//#include <ESPAsyncWebServer.h>
+	//#include <ElegantOTA.h>
+	
 	#include "WebSrvManager.h"
-	//webServer server(80);
+	//AsyncWebServer  server(80);
 
 #endif
 
@@ -206,6 +206,7 @@ void setup()
 	#if RUN_WITHOUT_WIFI == false
     	LOG_I(TAG, "wifi setup...");
 		wifiSetup();
+		LOG_I(TAG, "wifi local IP : %s",WiFi.localIP().toString());
 	#endif
 	#if ENABLE_OTA_UPLOAD == true
     	LOG_I(TAG, "OTA setup...");

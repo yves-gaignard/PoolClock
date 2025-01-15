@@ -22,7 +22,7 @@
 
 #define FileSys LittleFS
 
-WebServer OTAServer(OTA_UPDATE_PORT);
+AsyncWebServer OTAServer(OTA_UPDATE_PORT);
 
 // forward declaration
 void WebSrvManager_recvMsg(uint8_t *data, size_t len);
@@ -78,7 +78,7 @@ void WebSrvManager_setup(boolean isWebSerial) {
     file = root.openNextFile();
   }
 
-  /*
+  
   OTAServer.on("/", HTTP_GET, WebSrvManager_root);
   //OTAServer.on("/getMeasures", HTTP_GET, WebSrvManager_getMeasures);
   OTAServer.onNotFound(WebSrvManager_notFound);
@@ -91,6 +91,9 @@ void WebSrvManager_setup(boolean isWebSerial) {
   {
     request->send(FileSys, "/script.js", "text/javascript");
   });
+
+  OTAServer.serveStatic("/", FileSys, "/");
+  
   if (isWebSerial) {
     LOG_I(TAG, "Start Web Serial ....");
     // WebSerial is accessible at "<IP Address>/webserial" in browser
@@ -100,9 +103,9 @@ void WebSrvManager_setup(boolean isWebSerial) {
 
     Log.setWebSerialOn();
   }
-  */
   
-  ElegantOTA.begin(&OTAServer);    // Start ElegantOTA
+  ElegantOTA.begin(&OTAServer);
+  //ElegantOTA.begin(&OTAServer);    // Start ElegantOTA
   // ElegantOTA callbacks
   ElegantOTA.onStart(onOTAStart);
   ElegantOTA.onProgress(onOTAProgress);
