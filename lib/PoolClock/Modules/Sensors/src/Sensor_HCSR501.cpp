@@ -54,23 +54,23 @@ int Sensor_HCSR501::getPIRState() {
     if (val == HIGH)	// check if the input is HIGH
     {   
         _last_state_HIGH = millis(); 
-        //LOG_V(TAG, "Val = HIGH");
+        //LOG_D(TAG, "Val = HIGH");
         if (_pir_state == LOW) 
         { 
             _pir_state = HIGH;
             _last_changed_state = _last_state_HIGH;
-            LOG_V(TAG, "Motion is detected at %lu", _last_changed_state);
+            LOG_D(TAG, "Motion is detected at %lu", _last_changed_state);
         }         
     } 
     else 
     {
         _last_state_LOW = millis(); 
-        //LOG_V(TAG, "Val = LOW");
+        //LOG_D(TAG, "Val = LOW");
         if (_pir_state == HIGH) 
         { 
             _pir_state = LOW;
             _last_changed_state = _last_state_LOW;
-            LOG_V(TAG, "No more motion from %lu", _last_changed_state);
+            LOG_D(TAG, "No more motion from %lu", _last_changed_state);
         }         
     }
     return _pir_state;

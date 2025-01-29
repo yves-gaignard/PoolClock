@@ -22,7 +22,7 @@
 	 * \brief ADC pin to which the PIR sensor is connected to
 	 */
 	#define PIR_SENSOR_PIN			5
-	#define PIR_SENSOR_DELAY        30*1000ul //5*60*1000ul
+	#define PIR_SENSOR_DELAY        5000ul //5*60*1000ul
 #endif
 
 /***************************
@@ -55,7 +55,7 @@
  */
 #define USE_BUZZER		true //TODOPROD true
 #if USE_BUZZER == true
-/**
+	/**
 	 * \brief Buzzer pin is connected to
 	 */
 	#define BUZZER_PIN				17
